@@ -2,8 +2,7 @@ from flask_sqlalchemy import SQLAlchemy
 import enum
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
 from datetime import datetime
-
-db = SQLAlchemy()
+from app import db 
 
 class Status(enum.Enum):
     """Enum for document processing status."""
