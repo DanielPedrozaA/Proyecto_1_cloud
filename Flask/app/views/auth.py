@@ -1,6 +1,7 @@
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_jwt_extended import create_access_token
 from app.models import User, db
+import re
 
 
 # Crear nuevo usuario
@@ -50,6 +51,6 @@ def login(data):
     if not usuario or not check_password_hash(usuario.password, data['password']):
         return {'mensaje': 'Credenciales inválidas'}, 401
 
-    access_token = create_access_token(identity={'id': usuario.id, 'username': usuario.username})
+    access_token = create_access_token(identity=usuario.username)
 
     return {'access_token': access_token, 'usuario': usuario.id}, 200

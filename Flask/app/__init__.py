@@ -20,6 +20,7 @@ def create_app():
     app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY', 'default_jwt_secret')
     app.config['DEBUG'] = os.getenv('DEBUG', 'False').lower() == 'true'
 
+    print("DATABASE_URL (Flask):", app.config.get('SQLALCHEMY_DATABASE_URI'))
     # Initialize extensions
     db.init_app(app)
     jwt.init_app(app)
@@ -29,6 +30,9 @@ def create_app():
 
         from app.routes.auth import auth_bp
         app.register_blueprint(auth_bp, url_prefix='/auth')
+
+        from app.routes.documents import document_bp
+        app.register_blueprint(document_bp, url_prefix='/documents')
 
         db.create_all()
 
