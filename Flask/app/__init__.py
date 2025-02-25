@@ -15,6 +15,10 @@ def create_app():
 
     app = Flask(__name__)
 
+    database_url = os.getenv("DATABASE_URL")
+    if not database_url:
+        raise RuntimeError("DATABASE_URL environment variable is not set")
+
     app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABASE_URL")
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY', 'default_jwt_secret')
@@ -26,12 +30,11 @@ def create_app():
     jwt.init_app(app)
     CORS(app, resources={r"/*": {"origins": os.getenv("CORS_ORIGINS", "*")}})
 
+    from app.routes.documents import document_bp
+    from app.routes.auth import auth_bp
     with app.app_context():
 
-        from app.routes.auth import auth_bp
         app.register_blueprint(auth_bp, url_prefix='/auth')
-
-        from app.routes.documents import document_bp
         app.register_blueprint(document_bp, url_prefix='/documents')
 
         db.create_all()

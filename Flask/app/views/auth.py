@@ -1,8 +1,11 @@
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_jwt_extended import create_access_token
+from flask_jwt_extended import create_access_token, create_refresh_token, get_jwt, jwt_required, get_jwt_identity, JWTManager
 from app.models import User, db
+from app import jwt
 import re
 
+
+revoked_tokens = set()
 
 # Crear nuevo usuario
 def crear_usuario(data):
@@ -51,6 +54,26 @@ def login(data):
     if not usuario or not check_password_hash(usuario.password, data['password']):
         return {'mensaje': 'Credenciales inválidas'}, 401
 
-    access_token = create_access_token(identity=usuario.username)
+    access_token = create_access_token(identity=str(usuario.id))
+    refresh_token = create_refresh_token(identity=str(usuario.id))
 
-    return {'access_token': access_token, 'usuario': usuario.id}, 200
+    return {'access_token': access_token,'refresh_token': refresh_token, 'usuario': usuario.id}, 200
+
+# logout
+@jwt_required()
+def logout():
+    jti = get_jwt()["jti"]
+    revoked_tokens.add(jti)
+    return {'mensaje': 'Logout exitoso, token revocado'}, 200
+
+# Refresh Token
+@jwt_required(refresh=True)
+def refresh_token():
+    current_user = get_jwt_identity()
+    new_access_token = create_access_token(identity=current_user)
+    return {'access_token': new_access_token}, 200
+
+@jwt.token_in_blocklist_loader
+def check_if_token_revoked(jwt_header, jwt_payload):
+    jti = jwt_payload["jti"]
+    return jti in revoked_tokens
