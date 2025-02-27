@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Container, Row, Col, Form, Button, Alert } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
-import LogoAi from '../../assets/LogoAi.jpeg';
+import LogoAi from '../../assets/Logo_Negro_Cloud.png';
 import './Login.css';
 import api from '../../api';
 
