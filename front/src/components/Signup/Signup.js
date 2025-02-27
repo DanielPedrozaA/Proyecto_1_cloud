@@ -4,6 +4,7 @@ import { Container, Form, Button, Alert } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import LogoAi from '../../assets/LogoAi.jpeg';
 import './Signup.css';
+import api from '../../api';
 
 function Signup() {
     const navigate = useNavigate();
@@ -12,17 +13,35 @@ function Signup() {
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [error, setError] = useState('');
+    const [success, setSuccess] = useState('');
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
+
+        // Basic client-side validation
         if (password !== confirmPassword) {
             setError("Passwords do not match.");
             return;
         }
         setError("");
-        // Call your signup API here.
-        console.log("Signing up:", { username, email, password });
-        navigate('/login'); // Navigate to login after signup
+
+        try {
+            // Call the register endpoint; adjust if your blueprint prefix changes
+            const response = await api.post('/auth/register', { username, email, password });
+            if (response.status === 201) {
+                setSuccess("Usuario creado exitosamente. Redirigiendo al login...");
+                // Redirect after a short delay so the user can see the success message
+                setTimeout(() => {
+                    navigate('/login');
+                }, 2000);
+            }
+        } catch (err) {
+            if (err.response && err.response.data && err.response.data.mensaje) {
+                setError(err.response.data.mensaje);
+            } else {
+                setError("An error occurred. Please try again.");
+            }
+        }
     };
 
     return (
@@ -33,6 +52,7 @@ function Signup() {
                     <h1 className="signup-title">Create an Account</h1>
                 </div>
                 {error && <Alert variant="danger">{error}</Alert>}
+                {success && <Alert variant="success">{success}</Alert>}
                 <Form onSubmit={handleSubmit}>
                     <Form.Group controlId="formUsername" className="mb-3">
                         <Form.Control
