@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import api from '../../api'; // Same api instance used in Login.js
+import api from '../../api';
 import LogoAi from '../../assets/Logo_Blanco_Cloud.png';
 
-// Icons for documents
+// Icons for documents...
 import PdfIcon from '../../assets/pdffile.png';
 import TxtIcon from '../../assets/txt-file.png';
 import DocIcon from '../../assets/docx-file-format-symbol.png';
@@ -16,15 +16,19 @@ import './Dashboard.css';
 
 function Dashboard({ refreshTrigger }) {
   const [documents, setDocuments] = useState([]);
-  const [username] = useState('User1'); // For now, a default; later, pass via props or context
+  const [currentUsername, setCurrentUsername] = useState('');
+
+  useEffect(() => {
+    const savedUsername = localStorage.getItem('username') || 'User';
+    setCurrentUsername(savedUsername);
+    fetchDocuments();
+  }, [refreshTrigger]);
 
   const fetchDocuments = async () => {
     try {
       const token = localStorage.getItem('token');
       const response = await api.get('/documents/', {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
       setDocuments(response.data);
     } catch (error) {
@@ -32,16 +36,9 @@ function Dashboard({ refreshTrigger }) {
     }
   };
 
-  // Fetch documents on mount and whenever refreshTrigger changes
-  useEffect(() => {
-    fetchDocuments();
-  }, [refreshTrigger]);
-
-  // Determine which icon to display based on file extension
   const getIconForDocument = (filename) => {
     if (!filename) return GenericIcon;
     const extension = filename.split('.').pop().toLowerCase();
-
     switch (extension) {
       case 'pdf':
         return PdfIcon;
@@ -57,16 +54,12 @@ function Dashboard({ refreshTrigger }) {
     }
   };
 
-  // Handle Logout
   const handleLogout = async () => {
     try {
       const token = localStorage.getItem('token');
       await api.post('/auth/logout', {}, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
-      // Remove token and redirect to login page
       localStorage.removeItem('token');
       window.location.href = '/login';
     } catch (error) {
@@ -76,13 +69,13 @@ function Dashboard({ refreshTrigger }) {
 
   return (
     <div className="dashboard-container-unique-id">
-      {/* Main content (logo, welcome, documents) */}
       <div className="dashboard-main-content-unique-id">
         <div className="dashboard-logo-section-unique-id">
           <img src={LogoAi} alt="Logo" className="dashboard-logo-unique-id" />
-          <h2 className="dashboard-welcome-unique-id">
-            Welcome <span className="dashboard-username-unique-id">{username}</span>
-          </h2>
+          <div className="dashboard-welcome-container-unique-id">
+            <h2 className="dashboard-welcome-text-unique-id">Welcome</h2>
+            <h3 className="dashboard-username-unique-id">{currentUsername}</h3>
+          </div>
         </div>
 
         <hr className="dashboard-divider-unique-id" />
@@ -95,10 +88,7 @@ function Dashboard({ refreshTrigger }) {
                 alt="doc-icon"
                 className="dashboard-doc-icon-unique-id"
               />
-              <span
-                className="dashboard-doc-name-unique-id"
-                title={doc.original_filename}
-              >
+              <span className="dashboard-doc-name-unique-id" title={doc.original_filename}>
                 {doc.original_filename}
               </span>
             </li>
@@ -106,13 +96,8 @@ function Dashboard({ refreshTrigger }) {
         </ul>
       </div>
 
-      {/* Logout button at bottom */}
       <div className="dashboard-logout-section-unique-id" onClick={handleLogout}>
-        <img
-          src={LogoutIcon}
-          alt="Logout Icon"
-          className="dashboard-logout-icon-unique-id"
-        />
+        <img src={LogoutIcon} alt="Logout Icon" className="dashboard-logout-icon-unique-id" />
         <span className="dashboard-logout-text-unique-id">Logout</span>
       </div>
     </div>

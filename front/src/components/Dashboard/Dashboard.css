@@ -1,125 +1,131 @@
-/* 
-  Dashboard.css 
-  Using unique suffixes (-unique-id) to avoid conflicts with other components.
-*/
+/* Dashboard.css */
+/* Using unique suffixes (-unique-id) to avoid conflicts with other components */
 
-/* Container for the entire sidebar */
+/*======================================
+  Layout & Container
+======================================*/
 .dashboard-container-unique-id {
-    width: 20%;
-    min-width: 200px;
-    max-width: 400px;
-    min-height: 100vh;
-    background: linear-gradient(0deg, #38b78c 0%, #3ba7b2 100%);
-    color: #ffffff;
-    padding: 20px;
-    box-sizing: border-box;
-  
-    /* Flex layout to push the logout button to the bottom */
-    display: flex;
-    flex-direction: column;
-  
-    /* This sets the base font size in a responsive manner */
-    font-size: clamp(14px, 2vw, 18px);
-  }
-  
-  /* Main content (logo, docs) grows to fill space above the logout button */
-  .dashboard-main-content-unique-id {
-    flex: 1;
-  }
-  
-  /* Logo + Welcome section */
-  .dashboard-logo-section-unique-id {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin-bottom: 20px;
-  }
-  
-  .dashboard-logo-unique-id {
-    /* Logo width scales between 80px and 150px depending on viewport */
-    width: clamp(80px, 15vw, 150px);
-    height: auto;
-    margin-bottom: 10px;
-  }
-  
-  .dashboard-welcome-unique-id {
-    /* 1.2rem refers to 1.2 * the container’s clamp font-size */
-    font-size: 1.2rem;
-    font-weight: 600;
-    text-align: center;
-  }
-  
-  .dashboard-username-unique-id {
-    font-style: italic;
-    color: #fff;
-  }
-  
-  /* Divider style */
-  .dashboard-divider-unique-id {
-    border: 0;
-    height: 1px;
-    background: #ffffff;
-    margin: 15px 0;
-    opacity: 0.5;
-  }
-  
-  /* Document list styling */
-  .dashboard-doc-list-unique-id {
-    list-style-type: none;
-    padding: 0;
-    margin: 0;
-  }
-  
-  .dashboard-doc-item-unique-id {
-    display: flex;
-    align-items: center;
-    margin-bottom: 10px;
-    cursor: pointer; /* If you want a pointer cursor on hover */
-  }
-  
-  .dashboard-doc-item-unique-id:hover {
-    opacity: 0.8; /* Subtle hover effect */
-  }
-  
-  .dashboard-doc-icon-unique-id {
-    /* Icon size scales between 20px and 32px */
-    width: clamp(20px, 3vw, 32px);
-    height: clamp(20px, 3vw, 32px);
-    margin-right: 10px;
-  }
-  
-  /* Truncate file names if too long */
-  .dashboard-doc-name-unique-id {
-    display: inline-block;
-    max-width: 100%;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    color: #ffffff;
-    word-break: break-word; /* Remove if you want a strict single-line ellipsis */
-    font-size: clamp(14px, 2vw, 18px);
-  }
-  
-  /* Logout button section at bottom */
-  .dashboard-logout-section-unique-id {
-    display: flex;
-    align-items: center;
-    cursor: pointer;
-    margin-top: 20px; /* Some spacing from the doc list */
-  }
-  
-  .dashboard-logout-section-unique-id:hover {
-    opacity: 0.8; 
-  }
-  
-  .dashboard-logout-icon-unique-id {
-    width: 26px; 
-    height: 26px;
-    margin-right: 10px;
-  }
-  
-  .dashboard-logout-text-unique-id {
-    font-size: 1.2rem;
-    color: #fff;
-  }
-  
+  width: 20%;
+  min-width: 200px;
+  max-width: 400px;
+  min-height: 100vh;
+  background: linear-gradient(0deg, #38b78c 0%, #3ba7b2 100%);
+  color: #ffffff;
+  padding: 20px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  font-size: clamp(14px, 2vw, 18px);
+}
+
+.dashboard-main-content-unique-id {
+  flex: 1;
+}
+
+/*======================================
+  Header: Logo & Welcome
+======================================*/
+.dashboard-logo-section-unique-id {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.dashboard-logo-unique-id {
+  width: clamp(80px, 15vw, 150px);
+  height: auto;
+  margin-bottom: 10px;
+}
+
+.dashboard-welcome-container-unique-id {
+  text-align: center;
+}
+
+.dashboard-welcome-text-unique-id {
+  margin: 0;
+  font-size: 1.8rem;
+  font-weight: 600;
+}
+
+.dashboard-username-unique-id {
+  margin: 0;
+  font-size: 1.5rem;
+  font-style: italic;
+  color: #fff;
+  text-align: center;
+}
+
+/*======================================
+  Divider
+======================================*/
+.dashboard-divider-unique-id {
+  border: 0;
+  height: 1px;
+  background: #ffffff;
+  margin: 15px 0;
+  opacity: 0.5;
+}
+
+/*======================================
+  Document List
+======================================*/
+.dashboard-doc-list-unique-id {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+.dashboard-doc-item-unique-id {
+  display: flex;
+  align-items: center;
+  margin-bottom: 25px;
+  /* Increased spacing */
+  cursor: pointer;
+}
+
+.dashboard-doc-item-unique-id:hover {
+  opacity: 0.8;
+}
+
+.dashboard-doc-icon-unique-id {
+  width: clamp(20px, 3vw, 32px);
+  height: clamp(20px, 3vw, 32px);
+  margin-right: 10px;
+}
+
+.dashboard-doc-name-unique-id {
+  display: inline-block;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #ffffff;
+  word-break: break-word;
+  font-size: clamp(14px, 2vw, 18px);
+}
+
+/*======================================
+  Logout Section
+======================================*/
+.dashboard-logout-section-unique-id {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  margin-top: 20px;
+}
+
+.dashboard-logout-section-unique-id:hover {
+  opacity: 0.8;
+}
+
+.dashboard-logout-icon-unique-id {
+  width: 26px;
+  height: 26px;
+  margin-right: 10px;
+}
+
+.dashboard-logout-text-unique-id {
+  font-size: 1.2rem;
+  color: #fff;
+}

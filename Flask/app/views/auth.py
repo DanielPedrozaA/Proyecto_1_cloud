@@ -37,7 +37,7 @@ def login(data):
     access_token = create_access_token(identity=str(usuario.id))
     refresh_token = create_refresh_token(identity=str(usuario.id))
 
-    return {'access_token': access_token,'refresh_token': refresh_token, 'usuario': usuario.id}, 200
+    return {'access_token': access_token,'refresh_token': refresh_token, 'usuario': usuario.id, 'username': str(usuario.username)}, 200
 
 # logout
 @jwt_required()

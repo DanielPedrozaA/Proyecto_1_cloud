@@ -1,90 +1,97 @@
-/* 
-  Uploader.css
-  Using unique suffixes (-unique-id) to avoid conflicts with other components.
-*/
-
-/* Container for the entire right section */
+/*======================================
+  Container
+======================================*/
 .uploader-container-unique-id {
-    /* This can occupy the remaining width if your sidebar is 30%. Adjust as needed. */
-    width: 70%;
-    margin: 0 auto;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-  
-    /* Responsive base font size */
-    font-size: clamp(14px, 2vw, 18px);
-    padding: 20px;
-    box-sizing: border-box;
-  }
-  
-  /* Title */
-  .uploader-title-unique-id {
-    margin-bottom: 2rem;
-    text-align: center;
-    font-size: 1.8rem; /* 1.8 * clamp base, adjusts with screen size */
-  }
-  
-  /* Drop area styling */
-  .uploader-drop-area-unique-id {
-    width: clamp(250px, 60%, 400px);
-    min-height: 200px;
-    border: 2px dashed #ccc;
-    border-radius: 10px;
-    background-color: #f8f8f8;
-    color: #333;
-    text-align: center;
-    padding: 20px;
-    cursor: pointer;
-    transition: background-color 0.3s;
-  }
-  
-  /* Highlight when dragging files over */
-  .drag-over-unique-id {
-    background-color: #e0f7fa; /* A light highlight color */
-  }
-  
-  /* Upload icon inside the drop area */
-  .uploader-icon-unique-id {
-    width: clamp(40px, 10vw, 80px);
-    height: auto;
-    margin-bottom: 10px;
-  }
-  
-  /* "Select File" text that triggers the file input */
-  .uploader-select-text-unique-id {
-    color: #0275d8;
-    text-decoration: underline;
-    cursor: pointer;
-  }
-  
-  /* Hidden file input */
-  .uploader-file-input-unique-id {
-    display: none;
-  }
-  
-  /* Selected file name */
-  .uploader-file-name-unique-id {
-    margin-top: 1rem;
-    color: #333;
-    text-align: center;
-  }
-  
-  /* Upload button */
-  .uploader-upload-button-unique-id {
-    margin-top: 1rem;
-    padding: 0.75rem 1.5rem;
-    border-radius: 25px;
-    border: none;
-    background-color: #27b398;
-    color: #fff;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: background-color 0.3s;
-  }
-  
-  .uploader-upload-button-unique-id:hover {
-    background-color: #1e8e7e;
-  }
-  
+  /* Occupies 70% of the width and centers content */
+  width: 70%;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(14px, 2vw, 18px);
+  /* Responsive base font size */
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+/*======================================
+  Title
+======================================*/
+.uploader-title-unique-id {
+  margin-bottom: 2rem;
+  text-align: center;
+  font-size: 2.2rem;
+  /* 1.8 times the base font size */
+}
+
+/*======================================
+  Drop Area
+======================================*/
+.uploader-drop-area-unique-id {
+  width: clamp(400px, 60%, 500px);
+  min-height: 250px;
+  border: 2px dashed #ccc;
+  border-radius: 20px;
+  background-color: #f8f8f8;
+  color: #333;
+  padding: 20px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.drag-over-unique-id {
+  background-color: #e0f7fa;
+}
+
+/*======================================
+  Icon & Select Text
+======================================*/
+.uploader-icon-unique-id {
+  width: clamp(40px, 10vw, 80px);
+  height: auto;
+  margin-bottom: 10px;
+  align-items: center;
+}
+
+.uploader-select-text-unique-id {
+  color: #0275d8;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/*======================================
+  File Input & File Name
+======================================*/
+.uploader-file-input-unique-id {
+  display: none;
+}
+
+.uploader-file-name-unique-id {
+  margin-top: 1rem;
+  color: #333;
+  text-align: center;
+}
+
+/*======================================
+  Upload Button
+======================================*/
+.uploader-upload-button-unique-id {
+  margin-top: 1rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 25px;
+  border: none;
+  background-color: #27b398;
+  color: #fff;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.uploader-upload-button-unique-id:hover {
+  background-color: #1e8e7e;
+}

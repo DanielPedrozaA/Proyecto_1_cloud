@@ -28,12 +28,13 @@ function Login() {
         try {
             // Make the login request. Adjust the URL if your blueprint is mounted with a prefix.
             const response = await api.post('/auth/login', formData);
-            const { access_token, refresh_token, usuario } = response.data;
+            const { access_token, refresh_token, usuario, username } = response.data;
 
             // Save tokens (and user data if needed) in localStorage
             localStorage.setItem('token', access_token);
             localStorage.setItem('refresh_token', refresh_token);
             localStorage.setItem('userId', usuario);
+            localStorage.setItem('username', username);
 
             // Clear error and navigate to dashboard
             setError('');
