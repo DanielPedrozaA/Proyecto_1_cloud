@@ -1,34 +1,76 @@
-import React from 'react';
-import { Container, Row, Col, Form, Button } from 'react-bootstrap';
+import React, { useState } from 'react';
+import { Container, Row, Col, Form, Button, Alert } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
-import LogoAi from '../../assets/LogoAi.jpeg';
+import LogoAi from '../../assets/Logo_Negro_Cloud.png';
 import './Login.css';
+import api from '../../api';
 
 function Login() {
-    const navigate = useNavigate(); // Initialize navigate hook
+    const navigate = useNavigate();
+    const [formData, setFormData] = useState({ username: '', password: '' });
+    const [error, setError] = useState('');
+
+    // Handle form input changes
+    const handleChange = (e) => {
+        setFormData({ ...formData, [e.target.name]: e.target.value });
+    };
+
+    // Handle form submission
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+
+        // Basic validation for missing values
+        if (!formData.username || !formData.password) {
+            setError('Please enter both username and password.');
+            return;
+        }
+
+        try {
+            // Make the login request. Adjust the URL if your blueprint is mounted with a prefix.
+            const response = await api.post('/auth/login', formData);
+            const { access_token, refresh_token, usuario, username } = response.data;
+
+            // Save tokens (and user data if needed) in localStorage
+            localStorage.setItem('token', access_token);
+            localStorage.setItem('refresh_token', refresh_token);
+            localStorage.setItem('userId', usuario);
+            localStorage.setItem('username', username);
+
+            // Clear error and navigate to dashboard
+            setError('');
+            navigate('/dashboard');
+        } catch (err) {
+            // Handle error response from backend
+            if (err.response && err.response.data && err.response.data.mensaje) {
+                setError(err.response.data.mensaje);
+            } else {
+                setError('An error occurred. Please try again.');
+            }
+        }
+    };
 
     return (
         <Container fluid className="login-container">
             <Row className="login-row g-0">
-                {/* Left (White) Column */}
                 <Col md={8} className="login-form-col">
                     <div className="login-form-wrapper">
                         {/* Logo */}
                         <div className="logo-container">
                             <img src={LogoAi} alt="Logo" className="logo" />
                         </div>
-
-                        {/* Title & Subtitle */}
                         <h1 className="login-title">Login to Your Account</h1>
                         <p className="login-subtitle">Enter your username and password</p>
-
-                        {/* Form */}
-                        <Form>
+                        {error && <Alert variant="danger">{error}</Alert>}
+                        {/* Login Form */}
+                        <Form onSubmit={handleSubmit}>
                             <Form.Group controlId="formBasicUsername">
                                 <Form.Control
                                     type="text"
                                     placeholder="Username"
                                     className="rounded-input"
+                                    name="username"
+                                    value={formData.username}
+                                    onChange={handleChange}
                                 />
                             </Form.Group>
 
@@ -37,6 +79,9 @@ function Login() {
                                     type="password"
                                     placeholder="Password"
                                     className="rounded-input"
+                                    name="password"
+                                    value={formData.password}
+                                    onChange={handleChange}
                                 />
                             </Form.Group>
 
