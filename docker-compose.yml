@@ -41,7 +41,7 @@ services:
         condition: service_started
     volumes:
       - uploaded_documents:/flask_app/uploadedDocuments
-  
+
   celery_worker:
     build:
       context: ./batch

@@ -25,7 +25,7 @@ class DocumentUploadResource(Resource):
         if not current_user:
             return {'message': 'Acceso no autorizado'}, 403
 
-        user = User.query.filter_by(username=current_user).first()
+        user = User.query.filter_by(id=current_user).first()
         if not user:
             return {'message': 'Usuario no encontrado'}, 404
 
@@ -69,6 +69,7 @@ class DocumentUploadResource(Resource):
         celery_app.send_task('process.document', args=[file_path, document.id])
 
         return {'message': 'Documento subido exitosamente'}, 201
+
 class DocumentListResource(Resource):
     """
     GET /documents
@@ -80,7 +81,7 @@ class DocumentListResource(Resource):
         if not current_user:
             return {'message': 'Acceso no autorizado'}, 403
 
-        user = User.query.filter_by(username=current_user).first()
+        user = User.query.filter_by(id=current_user).first()
         if not user:
             return {'message': 'Usuario no encontrado'}, 404
 
@@ -113,7 +114,7 @@ class DocumentDetailResource(Resource):
         if not current_user:
             return {'message': 'Acceso no autorizado'}, 403
 
-        user = User.query.filter_by(username=current_user).first()
+        user = User.query.filter_by(id=current_user).first()
         if not user:
             return {'message': 'Usuario no encontrado'}, 404
 
@@ -136,7 +137,7 @@ class DocumentDetailResource(Resource):
         if not current_user:
             return {'message': 'Acceso no autorizado'}, 403
 
-        user = User.query.filter_by(username=current_user).first()
+        user = User.query.filter_by(id=current_user).first()
         if not user:
             return {'message': 'Usuario no encontrado'}, 404
 
