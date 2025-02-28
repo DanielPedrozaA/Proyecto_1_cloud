@@ -28,7 +28,7 @@ def create_app():
     # Initialize extensions
     db.init_app(app)
     jwt.init_app(app)
-    CORS(app, resources={r"/*": {"origins": os.getenv("CORS_ORIGINS", "*")}})
+    CORS(app, resources={r"/*": {"origins": os.getenv("CORS_ORIGINS", "*")}}, supports_credentials=True)
 
     from app.routes.documents import document_bp
     from app.routes.auth import auth_bp
