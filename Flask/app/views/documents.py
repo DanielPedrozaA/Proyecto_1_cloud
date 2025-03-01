@@ -72,8 +72,8 @@ class DocumentUploadResource(Resource):
         document.file_path = file_path
         db.session.commit()
 
-        celery_app.send_task('process.document', args=[file_path, document.id])
-        celery_app.send_task('process.embeddings', args=[document.id,extension,name])
+        celery_app.send_task('process.document', queue='document_queue', args=[file_path, document.id])
+        celery_app.send_task('process.embeddings',queue='embeddings_queue', args=[document.id,extension,name],countdown=2)
 
         return {'message': 'Documento subido exitosamente'}, 201
 

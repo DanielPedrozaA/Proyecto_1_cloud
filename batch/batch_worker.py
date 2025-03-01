@@ -24,7 +24,7 @@ engine = create_engine(DATABASE_URL)
 Base.metadata.create_all(engine)
 Session = sessionmaker(bind=engine)
 
-@celery_app.task(name='process.document', queues = "HighPriority")
+@celery_app.task(name='process.document', queue = "document_queue")
 def process_document(file_path, document_id):
     """
     Tarea que simula el procesamiento del documento:

@@ -51,7 +51,7 @@ def get_loader(file_path, extension):
 
 
 # Crear nuevo usuario
-@celery_app.task(name='process.embeddings')
+@celery_app.task(name='process.embeddings', queue = "embeddings_queue")
 def embbedings(document_id,extension,collection_name):
 
     file_path = f"/flask_app/uploadedDocuments/processedDocuments/document_{document_id}.{extension}"
