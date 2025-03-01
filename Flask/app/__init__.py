@@ -4,6 +4,7 @@ from flask_jwt_extended import JWTManager
 from flask_cors import CORS
 from dotenv import load_dotenv
 import os
+from datetime import timedelta
 
 # Initialize extensions globally, but bind later
 db = SQLAlchemy()
@@ -26,6 +27,10 @@ def create_app():
 
     print("DATABASE_URL (Flask):", app.config.get('SQLALCHEMY_DATABASE_URI'))
     # Initialize extensions
+
+    app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(seconds=30)
+    app.config["JWT_REFRESH_TOKEN_EXPIRES"] = timedelta(minutes=2)
+
     db.init_app(app)
     jwt.init_app(app)
     CORS(app, resources={r"/*": {"origins": os.getenv("CORS_ORIGINS", "*")}}, supports_credentials=True)

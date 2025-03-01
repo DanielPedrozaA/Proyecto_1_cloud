@@ -1,4 +1,6 @@
-/* Entire page uses the gradient background (matching the signup-col in login) */
+/* ============================
+   Signup Page Layout
+============================ */
 .signup-container {
     background: linear-gradient(0deg, #38b78c 0%, #3ba7b2 100%);
     min-height: 100vh;
@@ -8,7 +10,9 @@
     padding: 2rem;
 }
 
-/* Centered card that holds the signup form */
+/* ============================
+     Signup Card (Form Holder)
+  ============================ */
 .signup-card {
     background-color: #ffffff;
     border-radius: 8px;
@@ -18,12 +22,13 @@
     padding: 2rem;
 }
 
-/* Logo styling */
+/* ============================
+     Branding & Typography
+  ============================ */
 .signup-logo {
     width: 100px;
 }
 
-/* Title styling */
 .signup-title {
     font-size: 2rem;
     font-weight: 600;
@@ -31,17 +36,20 @@
     text-align: center;
 }
 
-/* Input fields styling */
+/* ============================
+     Form Elements
+  ============================ */
 .rounded-input {
     border-radius: 50px;
 }
 
-/* Rounded buttons styling */
+/* ============================
+     Button Styles
+  ============================ */
 .rounded-button {
     border-radius: 50px;
 }
 
-/* Specific signup button styles (if you want to adjust colors) */
 .signup-button {
     font-size: 1.1rem;
     font-weight: 500;
@@ -52,7 +60,6 @@
     border: none;
 }
 
-/* Hover effect for the signup button */
 .signup-button:hover {
     background-color: #115046;
     border-color: #115046;

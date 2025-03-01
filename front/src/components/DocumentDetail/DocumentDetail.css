@@ -1,0 +1,124 @@
+/* ============================
+   General Layout
+============================ */
+.doc-detail-wrapper-unique-id {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    background-color: #fff;
+}
+
+/* ============================
+     Main Content Area
+  ============================ */
+.doc-detail-container-unique-id {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow-y: auto;
+    padding: 1% 0;
+    box-sizing: border-box;
+}
+
+/* ============================
+     Title Styling
+  ============================ */
+.doc-detail-title-unique-id {
+    font-size: 2.0rem;
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+/* ============================
+     Sections (Summary & Answer)
+  ============================ */
+.doc-detail-section-unique-id {
+    width: 75%;
+    margin: 0 auto 1.5rem auto;
+    padding: 1rem;
+    border-radius: 20px;
+    color: #333;
+
+}
+
+.summary-section-unique-id {
+    background-color: #eefbf7;
+    border: 1px solid #27b398;
+}
+
+.answer-section-unique-id {
+    background-color: #f1fdfb;
+    border: 1px solid #38b78c;
+}
+
+/* ============================
+     Ask Bar (Pinned at Bottom)
+  ============================ */
+.doc-detail-askbar-unique-id {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    transform: translateX(10%);
+    padding: 1rem;
+    background-color: transparent;
+    display: flex;
+    justify-content: center;
+    box-sizing: border-box;
+    z-index: 2;
+}
+
+/* Inner Ask Bar Container */
+.doc-detail-askbar-inner-unique-id {
+    position: relative;
+    width: 70%;
+    margin: 0 auto;
+    background-color: rgb(236, 236, 236);
+    padding: 12px 16px;
+    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+    border-radius: 20px;
+    box-sizing: border-box;
+}
+
+/* ============================
+     Input & Button Styling
+  ============================ */
+/* Ask Bar Textarea */
+.doc-detail-textarea-unique-id {
+    width: 97%;
+    resize: none;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: 1rem;
+    max-height: 200px;
+    overflow-y: auto;
+    line-height: 1.4;
+    padding-right: 50px;
+    /* Space for send icon */
+}
+
+/* Send (Ask) Button */
+.doc-detail-ask-button-unique-id {
+    position: absolute;
+    bottom: 16px;
+    right: 20px;
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+}
+
+.doc-detail-ask-button-unique-id:hover {
+    opacity: 0.8;
+}
+
+/* Send Icon */
+.doc-detail-send-icon-unique-id {
+    width: 24px;
+    height: 24px;
+}
