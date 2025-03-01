@@ -3,7 +3,7 @@ from datetime import datetime
 from flask import request
 from flask_restful import Resource
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from ..models import db, User, Document, Status
+from ..models import db, User, Document, Status, Status_Embeddings
 from celery import Celery
 
 redis_host = os.environ.get("REDISHOST", "redis")
@@ -44,13 +44,18 @@ class DocumentUploadResource(Resource):
         if not os.path.exists(DOCUMENT_DIRECTORY):
             os.makedirs(DOCUMENT_DIRECTORY)
 
+        extension = file.filename.rsplit('.', 1)[1].lower()
+
         document = Document(
             user_id=user.id,
             timestamp=datetime.utcnow(),
             status=Status.UPLOADED,
+            embbedings_status=Status_Embeddings.PENDING,
+            extension= extension,
             original_filename=file.filename,
             file_path=''
         )
+
         db.session.add(document)
         try:
             db.session.commit()
@@ -58,7 +63,8 @@ class DocumentUploadResource(Resource):
             db.session.rollback()
             return {'message': f'Error en la base de datos: {str(e)}'}, 500
 
-        extension = file.filename.rsplit('.', 1)[1].lower()
+        
+        name = file.filename.rsplit('.', 1)[0].lower()
         filename = f"document_{document.id}.{extension}"
         file_path = os.path.join(DOCUMENT_DIRECTORY, filename)
         file.save(file_path)
@@ -67,6 +73,7 @@ class DocumentUploadResource(Resource):
         db.session.commit()
 
         celery_app.send_task('process.document', args=[file_path, document.id])
+        celery_app.send_task('process.embeddings', args=[document.id,extension,name])
 
         return {'message': 'Documento subido exitosamente'}, 201
 

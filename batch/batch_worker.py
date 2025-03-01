@@ -24,7 +24,7 @@ engine = create_engine(DATABASE_URL)
 Base.metadata.create_all(engine)
 Session = sessionmaker(bind=engine)
 
-@celery_app.task(name='process.document')
+@celery_app.task(name='process.document', queues = "HighPriority")
 def process_document(file_path, document_id):
     """
     Tarea que simula el procesamiento del documento:
@@ -38,7 +38,7 @@ def process_document(file_path, document_id):
     destination_path = os.path.join(processed_dir, filename)
     
     shutil.move(file_path, destination_path)
-    
+
     session = Session()
     try:
         doc = session.query(Document).get(document_id)

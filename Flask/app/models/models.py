@@ -11,6 +11,12 @@ class Status(enum.Enum):
     COMPLETED = "completed"
     FAILED = "failed"
 
+class Status_Embeddings(enum.Enum):
+    """Enum for document processing status."""
+    PENDING = "pending"
+    COMPLETED = "completed"
+    FAILED = "failed"
+
 class User(db.Model):
     """User model for authentication and document tracking."""
     id = db.Column(db.Integer, primary_key=True)
@@ -25,7 +31,9 @@ class Document(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
     status = db.Column(db.Enum(Status), default=Status.UPLOADED)
+    embbedings_status = db.Column(db.Enum(Status_Embeddings), default=Status_Embeddings.PENDING)
     original_filename = db.Column(db.String(256), nullable=False)
+    extension = db.Column(db.String(256), nullable=False)
     file_path = db.Column(db.String(512), nullable=False)
     summary = db.Column(db.Text, nullable=True)
 

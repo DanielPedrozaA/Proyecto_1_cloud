@@ -14,4 +14,4 @@ ENV POSTGRES_PASSWORD=password
 ENV POSTGRES_DB=rag_saas
 ENV POSTGRES_PORT=5432
 
-CMD ["celery", "-A", "batch_worker.celery_app", "worker", "--loglevel=info"]
+CMD ["celery", "-A", "BatchWorker.celery_app", "worker", "--loglevel=info"]
