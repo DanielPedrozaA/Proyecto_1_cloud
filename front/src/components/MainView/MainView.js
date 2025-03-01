@@ -1,23 +1,44 @@
 import React, { useState } from 'react';
 import Dashboard from '../Dashboard/Dashboard';
 import Uploader from '../Uploader/Uploader';
+import DocumentDetail from '../DocumentDetail/DocumentDetail';
 import './MainView.css';
 
 function MainView() {
-  // This counter will trigger a refresh in Dashboard when updated.
   const [refreshKey, setRefreshKey] = useState(0);
+  const [selectedDocId, setSelectedDocId] = useState(null);
 
-  // Callback passed to Uploader to call when a file is uploaded successfully.
+  // Called after a successful file upload
   const handleUploadSuccess = () => {
-    setRefreshKey(prevKey => prevKey + 1);
+    // Trigger Dashboard to refetch
+    setRefreshKey(prev => prev + 1);
+  };
+
+  // Called when user clicks a document in the sidebar
+  const handleDocumentSelect = (docId) => {
+    setSelectedDocId(docId);
+  };
+
+  // Function to return to the uploader
+  const handleReturnToUploader = () => {
+    setSelectedDocId(null); // Reset selected document
   };
 
   return (
     <div className="main-view-container-unique-id">
-      {/* Dashboard receives the refresh key as a prop */}
-      <Dashboard refreshTrigger={refreshKey} />
-      {/* Uploader gets the callback to trigger a refresh */}
-      <Uploader onUploadSuccess={handleUploadSuccess} />
+      {/* Sidebar */}
+      <Dashboard
+        refreshTrigger={refreshKey}
+        onDocumentSelect={handleDocumentSelect}
+        onReturnToUploader={handleReturnToUploader} // Pass function
+      />
+
+      {/* Center area: show either Uploader or DocumentDetail */}
+      {selectedDocId ? (
+        <DocumentDetail docId={selectedDocId} />
+      ) : (
+        <Uploader onUploadSuccess={handleUploadSuccess} />
+      )}
     </div>
   );
 }

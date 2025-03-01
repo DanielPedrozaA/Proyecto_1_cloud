@@ -74,18 +74,33 @@
   list-style-type: none;
   padding: 0;
   margin: 0;
+  max-height: 500px;
+  overflow-y: auto;
+  padding-right: 10px;
+}
+
+.dashboard-doc-list-unique-id::-webkit-scrollbar {
+  width: 8px;
+}
+
+.dashboard-doc-list-unique-id::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 4px;
+}
+
+.dashboard-doc-list-unique-id::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.8);
 }
 
 .dashboard-doc-item-unique-id {
   display: flex;
   align-items: center;
   margin-bottom: 25px;
-  /* Increased spacing */
   cursor: pointer;
 }
 
 .dashboard-doc-item-unique-id:hover {
-  opacity: 0.8;
+  opacity: 0.65;
 }
 
 .dashboard-doc-icon-unique-id {
@@ -128,4 +143,40 @@
 .dashboard-logout-text-unique-id {
   font-size: 1.2rem;
   color: #fff;
+}
+
+/*======================================
+Back to Uploader button 
+======================================*/
+
+
+.dashboard-return-section-unique-id {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 13px;
+  margin-bottom: 5%;
+  color: #ffffff;
+  font-size: 1.2rem;
+  font-weight: 600;
+  border-radius: 5px;
+  transition: background-color 0.3s;
+  width: 100%;
+  position: relative;
+  z-index: 10;
+}
+
+.dashboard-return-section-unique-id:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+/*======================================
+ Logout button section 
+ ======================================*/
+.dashboard-logout-section-unique-id {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  margin-top: auto;
 }

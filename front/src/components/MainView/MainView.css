@@ -1,8 +1,17 @@
 .main-view-container-unique-id {
-    display: flex;
-    min-height: 100vh;
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-  }
-  
+  display: flex;
+  min-height: 100vh;
+}
+
+/* Sidebar (30%) */
+.dashboard-container-unique-id {
+  width: 100%;
+  z-index: 5;
+}
+
+/* DocumentDetail wrapper (70%) */
+.doc-detail-wrapper-unique-id {
+  width: 100%;
+  z-index: 1;
+
+}

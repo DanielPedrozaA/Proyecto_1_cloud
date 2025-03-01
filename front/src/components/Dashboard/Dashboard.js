@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import api from '../../api';
 import LogoAi from '../../assets/Logo_Blanco_Cloud.png';
 
-// Icons for documents...
+// Icons
 import PdfIcon from '../../assets/pdffile.png';
 import TxtIcon from '../../assets/txt-file.png';
 import DocIcon from '../../assets/docx-file-format-symbol.png';
@@ -14,7 +14,7 @@ import LogoutIcon from '../../assets/logout.png';
 
 import './Dashboard.css';
 
-function Dashboard({ refreshTrigger }) {
+function Dashboard({ refreshTrigger, onDocumentSelect, onReturnToUploader }) {
   const [documents, setDocuments] = useState([]);
   const [currentUsername, setCurrentUsername] = useState('');
 
@@ -56,14 +56,21 @@ function Dashboard({ refreshTrigger }) {
 
   const handleLogout = async () => {
     try {
-      const token = localStorage.getItem('token');
       await api.post('/auth/logout', {}, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
       });
+
       localStorage.removeItem('token');
+      localStorage.removeItem('refresh_token');
       window.location.href = '/login';
     } catch (error) {
-      console.error('Error logging out:', error);
+      console.error("Logout failed:", error);
+    }
+  };
+
+  const handleDocClick = (docId) => {
+    if (onDocumentSelect) {
+      onDocumentSelect(docId);
     }
   };
 
@@ -82,7 +89,11 @@ function Dashboard({ refreshTrigger }) {
 
         <ul className="dashboard-doc-list-unique-id">
           {documents.map((doc) => (
-            <li key={doc.id} className="dashboard-doc-item-unique-id">
+            <li
+              key={doc.id}
+              className="dashboard-doc-item-unique-id"
+              onClick={() => handleDocClick(doc.id)}
+            >
               <img
                 src={getIconForDocument(doc.original_filename)}
                 alt="doc-icon"
@@ -96,6 +107,12 @@ function Dashboard({ refreshTrigger }) {
         </ul>
       </div>
 
+      {/* Button to return to Uploader */}
+      <div className="dashboard-return-section-unique-id" onClick={onReturnToUploader}>
+        <span className="dashboard-return-text-unique-id">Upload a Document</span>
+      </div>
+
+      {/* Logout button */}
       <div className="dashboard-logout-section-unique-id" onClick={handleLogout}>
         <img src={LogoutIcon} alt="Logout Icon" className="dashboard-logout-icon-unique-id" />
         <span className="dashboard-logout-text-unique-id">Logout</span>
