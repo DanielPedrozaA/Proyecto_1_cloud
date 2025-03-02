@@ -9,7 +9,7 @@ from celery import Celery
 redis_host = os.environ.get("REDISHOST", "redis")
 celery_app = Celery('tasks', broker=f"redis://{redis_host}:6379/0")
 
-ALLOWED_DOC_EXTENSIONS = {'pdf', 'txt', 'doc', 'docx', 'md'}
+ALLOWED_DOC_EXTENSIONS = {'pdf', 'txt', 'md'}
 
 def allowed_doc_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_DOC_EXTENSIONS

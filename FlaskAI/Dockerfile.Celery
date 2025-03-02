@@ -9,4 +9,4 @@ COPY . /app
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Start Celery worker
-CMD ["celery", "-A", "app.celery_app", "worker", "--loglevel=info"]
+CMD ["celery", "-A", "app.celery_app", "worker", "--loglevel=info", "--queues=sms_queue"]

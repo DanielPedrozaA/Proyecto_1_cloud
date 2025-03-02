@@ -44,8 +44,6 @@ def get_loader(file_path, extension):
         return PyPDFLoader(file_path)
     elif extension == "md":
         return UnstructuredMarkdownLoader(file_path)
-    elif extension == "docx":
-        return Docx2txtLoader(file_path)
     else:
         raise ValueError(f"Unsupported file format: {extension}")
 

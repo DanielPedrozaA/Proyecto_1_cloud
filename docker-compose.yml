@@ -87,28 +87,28 @@ services:
         ollama pull llama3:8b && 
         tail -f /dev/null
 
-  # flask-ai:
-  #   build:
-  #     context: ./FlaskAI
-  #     dockerfile: Dockerfile.Flask
-  #   ports:
-  #     - "5000:5000"
-  #   depends_on:
-  #     - redis
-  #   environment:
-  #     FLASK_APP: "app.py"
-  #     FLASK_ENV: "development"
-  #   volumes:
-  #     - chroma_db:/chroma_db
+  flask-ai:
+    build:
+      context: ./FlaskAI
+      dockerfile: Dockerfile.Flask
+    ports:
+      - "5000:5000"
+    depends_on:
+      - redis
+    environment:
+      FLASK_APP: "app.py"
+      FLASK_ENV: "development"
+    volumes:
+      - chroma_db:/chroma_db
 
-  # celery-worker-messages:
-  #   build:
-  #     context: ./FlaskAI
-  #     dockerfile: Dockerfile.Celery
-  #   depends_on:
-  #     - flask-ai
-  #   volumes:
-  #     - chroma_db:/chroma_db
+  celery-worker-messages:
+    build:
+      context: ./FlaskAI
+      dockerfile: Dockerfile.Celery
+    depends_on:
+      - flask-ai
+    volumes:
+      - chroma_db:/chroma_db
 
 volumes:
   uploaded_documents:

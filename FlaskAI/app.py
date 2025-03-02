@@ -1,9 +1,7 @@
 from flask import Flask, request, jsonify
 from flask_socketio import SocketIO
-from celery import Celery
-import time
+from celery import Celery,current_task
 import os
-import re
 from langchain_ollama import OllamaEmbeddings
 from langchain_chroma import Chroma
 from langgraph.graph import  START, StateGraph
@@ -12,12 +10,15 @@ from langchain.chat_models import init_chat_model
 from langchain import hub
 import os
 from langchain_core.documents import Document
+from flask_cors import CORS
 
 # 🔹 Initialize Flask App
 app = Flask(__name__)
+CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
 
 # 🔹 Add WebSockets (Does NOT break existing routes)
-socketio = SocketIO(app, cors_allowed_origins="*")
+socketio = SocketIO(app,  message_queue="redis://redis:6379", cors_allowed_origins="*")
+socketIO = SocketIO(message_queue="redis://redis:6379", cors_allowed_origins="*")
 
 # 🔹 Configure Celery
 app.config["CELERY_BROKER_URL"] = "redis://localhost:6379/0"
@@ -79,9 +80,8 @@ def question(data):
 @app.route("/start_task", methods=["POST"])
 def start_task():
     data = request.json
-    duration = data.get("duration", 5)
-
-    task = long_running_task.apply_async(args=[duration])
+    socketio.emit("task_update", {"state": "READY"})
+    task = celery_app.send_task('process.sms', queue= "sms_queue", args = [data])
     return jsonify({"task_id": task.id}), 202
 
 # 🔹 Check Task Status (Optional)
@@ -91,16 +91,13 @@ def task_status(task_id):
     return jsonify({"task_id": task_id, "status": result.status, "result": result.result})
 
 # 🔹 Celery Background Task
-@celery_app.task(name='process.embeddings')
-def long_running_task(self, duration):
-
+@celery_app.task(name='process.sms', queue = "sms_queue", bin = True)
+def long_running_task(data):
+    respuesta = question(data)
         
+    socketIO.emit("task_update", {"task_id": current_task.request.id, "message": respuesta["respuesta"]})
 
-    
-    
-    socketio.emit("task_update", {"task_id": self.request.id, "state": "FINISHED"})
-
-    return f"Task completed "
+    return f"Task completed"
 
 # 🔹 WebSocket Connection Events
 @socketio.on("connect")

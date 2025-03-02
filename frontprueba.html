@@ -16,15 +16,14 @@
 
         // Recibir actualizaciones de la tarea
         socket.on("task_update", function(data) {
-            document.getElementById("status").innerText = 
-                "Progreso: " + data.progress + "% (Tarea ID: " + data.task_id + ")";
+            console.log(data);
         });
 
         function startTask() {
             fetch("http://localhost:5000/start_task", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ duration: 10 })
+                body: JSON.stringify({ collection: "Presentation", question: "Puedes crear un resumen de 100 palabras del texto?"})
             })
             .then(response => response.json())
             .then(data => {
