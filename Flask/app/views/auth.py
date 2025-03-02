@@ -2,6 +2,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_jwt_extended import create_access_token, create_refresh_token, get_jwt, jwt_required, get_jwt_identity, JWTManager
 from app.models import User, db
 from app import jwt
+from flask import current_app
 
 
 revoked_tokens = set()
@@ -37,7 +38,17 @@ def login(data):
     access_token = create_access_token(identity=str(usuario.id))
     refresh_token = create_refresh_token(identity=str(usuario.id))
 
-    return {'access_token': access_token,'refresh_token': refresh_token, 'usuario': usuario.id, 'username': str(usuario.username)}, 200
+    access_expires = current_app.config.get("JWT_ACCESS_TOKEN_EXPIRES")
+    refresh_expires = current_app.config.get("JWT_REFRESH_TOKEN_EXPIRES")
+
+    return {
+        'access_token': access_token,
+        'access_token_duration': access_expires.total_seconds() if access_expires else None,
+        'refresh_token': refresh_token,
+        'refresh_token_duration': refresh_expires.total_seconds() if refresh_expires else None,
+        'usuario': usuario.id,
+        'username': str(usuario.username)
+    }, 200
 
 # logout
 @jwt_required()
