@@ -26,27 +26,29 @@ function Login() {
         }
 
         try {
-            // Make the login request. Adjust the URL if your blueprint is mounted with a prefix.
             const response = await api.post('/auth/login', formData);
-            const { access_token, refresh_token, usuario, username } = response.data;
-
-            // Save tokens (and user data if needed) in localStorage
+            const { access_token, refresh_token, usuario, username, access_token_duration } = response.data;
+          
+            // Save tokens and user data
             localStorage.setItem('token', access_token);
             localStorage.setItem('refresh_token', refresh_token);
             localStorage.setItem('userId', usuario);
             localStorage.setItem('username', username);
-
-            // Clear error and navigate to dashboard
+          
+            // Calculate and save the exact expiration timestamp (in milliseconds)
+            const expiresAt = Date.now() + access_token_duration * 1000;
+            localStorage.setItem('access_token_expires_at', expiresAt);
+          
+            // Clear any previous error and navigate to the dashboard
             setError('');
             navigate('/dashboard');
-        } catch (err) {
-            // Handle error response from backend
+          } catch (err) {
             if (err.response && err.response.data && err.response.data.mensaje) {
-                setError(err.response.data.mensaje);
+              setError(err.response.data.mensaje);
             } else {
-                setError('An error occurred. Please try again.');
+              setError('An error occurred. Please try again.');
             }
-        }
+          }
     };
 
     return (
