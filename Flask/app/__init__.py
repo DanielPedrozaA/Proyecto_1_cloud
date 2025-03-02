@@ -28,8 +28,8 @@ def create_app():
     print("DATABASE_URL (Flask):", app.config.get('SQLALCHEMY_DATABASE_URI'))
     # Initialize extensions
 
-    app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(seconds=30)
-    app.config["JWT_REFRESH_TOKEN_EXPIRES"] = timedelta(minutes=2)
+    app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(seconds=900)
+    app.config["JWT_REFRESH_TOKEN_EXPIRES"] = timedelta(minutes=20)
 
     db.init_app(app)
     jwt.init_app(app)
