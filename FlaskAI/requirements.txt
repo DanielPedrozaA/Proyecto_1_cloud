@@ -24,3 +24,4 @@ langgraph-checkpoint==2.0.16
 langgraph-sdk==0.1.53
 langsmith==0.3.10
 flask-socketio
+requests

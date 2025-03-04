@@ -37,10 +37,12 @@ def create_app():
 
     from app.routes.documents import document_bp
     from app.routes.auth import auth_bp
+    from app.routes.ai import ai_bp
     with app.app_context():
 
         app.register_blueprint(auth_bp, url_prefix='/auth')
         app.register_blueprint(document_bp, url_prefix='/documents')
+        app.register_blueprint(ai_bp, url_prefix='/ai')
 
         db.create_all()
 
