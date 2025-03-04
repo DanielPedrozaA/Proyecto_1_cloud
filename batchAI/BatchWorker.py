@@ -64,7 +64,7 @@ def embbedings(document_id,extension,collection_name):
     docs = text_splitter.split_documents(documents)
 
     embeddings = OllamaEmbeddings(
-        model="llama3:8b",
+        model="gemma:2b",
         base_url="http://ollama:11434"
     )
 

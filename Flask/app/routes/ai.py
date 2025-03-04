@@ -4,6 +4,7 @@ import requests
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from flask_cors import cross_origin
 from app.models import Document, User
+import os
 
 ai_bp = Blueprint('ai', __name__)
 
@@ -53,8 +54,7 @@ def ask_question(doc_id):
         "collection": collection_name
     }
     
-    # Use the Docker service name for the AI backend
-    ai_backend_url = "http://flask-ai:5000/start_task"
+    ai_backend_url = os.getenv("AI_BACKEND_URL")
     try:
         response = requests.post(ai_backend_url, json=payload)
     except Exception as e:

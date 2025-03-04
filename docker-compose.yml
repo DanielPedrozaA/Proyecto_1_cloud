@@ -72,6 +72,7 @@ services:
         - chroma_db:/chroma_db
 
   ollama:
+    mem_limit: 12g
     image: ollama/ollama:latest
     container_name: ollama
     restart: always
@@ -84,7 +85,7 @@ services:
       - |
         ollama serve & 
         sleep 10 && 
-        ollama pull llama3:8b && 
+        ollama pull gemma:2b && 
         tail -f /dev/null
 
   flask-ai:
@@ -98,6 +99,8 @@ services:
     environment:
       FLASK_APP: "app.py"
       FLASK_ENV: "development"
+    env_file:
+      - ./FlaskAI/.env
     volumes:
       - chroma_db:/chroma_db
 
@@ -109,6 +112,15 @@ services:
       - flask-ai
     volumes:
       - chroma_db:/chroma_db
+
+  frontend:
+    build:
+      context: ./front
+    container_name: front
+    ports:
+      - "3000:3000"
+    depends_on:
+      - flask_app
 
 volumes:
   uploaded_documents:
