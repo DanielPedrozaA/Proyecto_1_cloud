@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import api from '../../api';
+import io from 'socket.io-client';
 import './DocumentDetail.css';
 
 // Import the send icon
@@ -7,18 +8,29 @@ import SendIcon from '../../assets/send-icon.png';
 
 function DocumentDetail({ docId }) {
     const [doc, setDoc] = useState(null);
-
-    // We'll store the user’s question and the AI-generated answer here
     const [question, setQuestion] = useState('');
     const [answer, setAnswer] = useState('');
-
-    // Ref for the auto-resizing text area
     const textareaRef = useRef(null);
+    const socket = io("http://localhost:5000");
 
     useEffect(() => {
         if (!docId) return;
         fetchDocDetail(docId);
     }, [docId]);
+
+    useEffect(() => {
+        // Listen for task_update event and update the answer state
+        socket.on("task_update", (data) => {
+            if (data && data.message) {
+                setAnswer(data.message);
+            }
+        });
+
+        // Clean up on unmount
+        return () => {
+            socket.off("task_update");
+        };
+    }, [socket]);
 
     const fetchDocDetail = async (id) => {
         try {
@@ -32,10 +44,9 @@ function DocumentDetail({ docId }) {
         }
     };
 
-    // Auto-resize the text area as the user types
     const autoResize = (elem) => {
-        elem.style.height = 'auto'; // reset
-        elem.style.height = `${elem.scrollHeight}px`; // grow to fit content
+        elem.style.height = 'auto';
+        elem.style.height = `${elem.scrollHeight}px`;
     };
 
     const handleQuestionChange = (e) => {
@@ -45,34 +56,26 @@ function DocumentDetail({ docId }) {
         }
     };
 
-    // Send the question to the backend
     const handleAskQuestion = async () => {
         if (!question.trim()) return;
-
         try {
             const token = localStorage.getItem('token');
-            // Example: POST /documents/<docId>/ask
             const response = await api.post(
-                `/documents/${docId}/ask`,
+                `/ai/documents/${docId}/ask`,
                 { question },
                 {
                     headers: { Authorization: `Bearer ${token}` },
                 }
             );
-            // Suppose the response includes { answer: "..." }
-            setAnswer(response.data.answer || 'No answer received.');
+            const taskId = response.data.task_id;
+            setAnswer(`Task sent. Task ID: ${taskId}. Waiting for answer...`);
         } catch (error) {
             console.error('Error asking question:', error);
             setAnswer('Error generating an answer. Please try again.');
         }
-        // Clear the question and reset textarea height
         setQuestion('');
-        if (textareaRef.current) {
-            textareaRef.current.style.height = 'auto';
-        }
     };
 
-    // Send on Enter (without Shift)
     const handleKeyDown = (e) => {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
@@ -86,24 +89,17 @@ function DocumentDetail({ docId }) {
 
     return (
         <div className="doc-detail-wrapper-unique-id">
-            {/* Main content (Summary & Answer) */}
             <div className="doc-detail-container-unique-id">
                 <h2 className="doc-detail-title-unique-id">{doc.original_filename}</h2>
-
-                {/* Summary Section */}
                 <div className="doc-detail-section-unique-id summary-section-unique-id">
                     <h3>Summary:</h3>
                     <p>{doc.summary || 'No summary available.'}</p>
                 </div>
-
-                {/* Answer Section displays the AI-generated answer */}
                 <div className="doc-detail-section-unique-id answer-section-unique-id">
                     <h3>Answer:</h3>
-                    <p>{answer || 'Placeholder for the answer (not provided by backend yet).'}</p>
+                    <p>{answer || 'Ask me something...'}</p>
                 </div>
             </div>
-
-            {/* Pinned "ask bar" at the bottom of the screen */}
             <div className="doc-detail-askbar-unique-id">
                 <div className="doc-detail-askbar-inner-unique-id">
                     <textarea
