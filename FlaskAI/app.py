@@ -1,32 +1,36 @@
 from flask import Flask, request, jsonify
 from flask_socketio import SocketIO
-from celery import Celery,current_task
+from celery import Celery, current_task
 import os
+from dotenv import load_dotenv  # Cargar variables del .env
 from langchain_ollama import OllamaEmbeddings
 from langchain_chroma import Chroma
-from langgraph.graph import  START, StateGraph
-from typing_extensions import List,  TypedDict
+from langgraph.graph import START, StateGraph
+from typing_extensions import List, TypedDict
 from langchain.chat_models import init_chat_model
 from langchain import hub
-import os
 from langchain_core.documents import Document
 from flask_cors import CORS
 
-# 🔹 Initialize Flask App
+load_dotenv()
+
+# 🔹 Inicializar Flask
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
+CORS(app, resources={r"/*": {"origins": os.getenv("CORS_ORIGINS", "*")}}, supports_credentials=True)
 
-# 🔹 Add WebSockets (Does NOT break existing routes)
-socketio = SocketIO(app,  message_queue="redis://redis:6379", cors_allowed_origins="*")
-socketIO = SocketIO(message_queue="redis://redis:6379", cors_allowed_origins="*")
+# 🔹 Configuración de Redis
+redis_host = os.getenv("REDIS_HOST", "redis")
+redis_port = os.getenv("REDIS_PORT", "6379")
 
-# 🔹 Configure Celery
-app.config["CELERY_BROKER_URL"] = "redis://localhost:6379/0"
-app.config["CELERY_RESULT_BACKEND"] = "redis://localhost:6379/0"
+# 🔹 Configuración de WebSockets
+socketio = SocketIO(app, message_queue=f"redis://{redis_host}:{redis_port}", cors_allowed_origins="*")
+socketIO = SocketIO(message_queue=f"redis://{redis_host}:{redis_port}", cors_allowed_origins="*")
 
-# Configuración de Celery
-redis_host = os.environ.get("REDISHOST", "redis")
-celery_app = Celery('tasks', broker=f"redis://{redis_host}:6379/0")
+# 🔹 Configuración de Celery
+app.config["CELERY_BROKER_URL"] = os.getenv("CELERY_BROKER_URL", f"redis://{redis_host}:{redis_port}/0")
+app.config["CELERY_RESULT_BACKEND"] = os.getenv("CELERY_RESULT_BACKEND", f"redis://{redis_host}:{redis_port}/0")
+
+celery_app = Celery('tasks', broker=app.config["CELERY_BROKER_URL"])
 
 class State(TypedDict):
     question: str
@@ -35,13 +39,12 @@ class State(TypedDict):
     collection: str
 
 def retrieve(state: State):
-
-    chroma_path = "/chroma_db"  # Directorio donde se guardaron los embeddings
-    collection_name = state["collection"]  # Asegúrate de usar el mismo nombre de colección
+    chroma_path = os.getenv("CHROMA_DB_PATH", "/chroma_db")  # Cargar ruta desde el .env
+    collection_name = state["collection"]
 
     embeddings = OllamaEmbeddings(
-        model="llama3:8b",
-        base_url="http://ollama:11434"
+        model=os.getenv("OLLAMA_MODEL", "llama:8b"),
+        base_url=os.getenv("OLLAMA_URL", "http://ollama:11434")
     )
 
     vector_store = Chroma(
@@ -54,9 +57,12 @@ def retrieve(state: State):
 
     return {"context": retrieved_docs}
 
-
 def generate(state: State):
-    llm = init_chat_model("llama3:8b", model_provider="ollama", base_url="http://ollama:11434")
+    llm = init_chat_model(
+        os.getenv("OLLAMA_MODEL", "llama3:8b"),
+        model_provider="ollama",
+        base_url=os.getenv("OLLAMA_URL", "http://ollama:11434")
+    )
     prompt = hub.pull("rlm/rag-prompt")
 
     docs_content = "\n\n".join(doc.page_content for doc in state["context"])
@@ -64,9 +70,7 @@ def generate(state: State):
     response = llm.invoke(messages)
     return {"answer": response.content}
 
-
 def question(data):
-
     graph_builder = StateGraph(State).add_sequence([retrieve, generate])
     graph_builder.add_edge(START, "retrieve")
     graph = graph_builder.compile()
@@ -75,31 +79,28 @@ def question(data):
 
     return {"respuesta": response["answer"]}
 
-
-# 🔹 New Route to Start Background Task
+# 🔹 Nueva Ruta para Iniciar una Tarea en Segundo Plano
 @app.route("/start_task", methods=["POST"])
 def start_task():
     data = request.json
     socketio.emit("task_update", {"state": "READY"})
-    task = celery_app.send_task('process.sms', queue= "sms_queue", args = [data])
+    task = celery_app.send_task('process.sms', queue="sms_queue", args=[data])
     return jsonify({"task_id": task.id}), 202
 
-# 🔹 Check Task Status (Optional)
+# 🔹 Comprobar el Estado de una Tarea
 @app.route("/task_status/<task_id>")
 def task_status(task_id):
-    result = celery.AsyncResult(task_id)
+    result = celery_app.AsyncResult(task_id)
     return jsonify({"task_id": task_id, "status": result.status, "result": result.result})
 
-# 🔹 Celery Background Task
-@celery_app.task(name='process.sms', queue = "sms_queue", bin = True)
+# 🔹 Tarea en Segundo Plano con Celery
+@celery_app.task(name='process.sms', queue="sms_queue", bin=True)
 def long_running_task(data):
     respuesta = question(data)
-        
     socketIO.emit("task_update", {"task_id": current_task.request.id, "message": respuesta["respuesta"]})
-
     return f"Task completed"
 
-# 🔹 WebSocket Connection Events
+# 🔹 Eventos de Conexión WebSocket
 @socketio.on("connect")
 def handle_connect():
     print("Client Connected")
@@ -108,6 +109,6 @@ def handle_connect():
 def handle_disconnect():
     print("Client Disconnected")
 
-# 🔹 Start Flask with WebSockets
+# 🔹 Iniciar Flask con WebSockets
 if __name__ == "__main__":
     socketio.run(app, debug=True)
