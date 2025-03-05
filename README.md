@@ -44,7 +44,7 @@ Para correr la aplicación en Docker, sigue estos pasos:
    docker-compose up --build
    ```
 3. Espera a que los servicios se inicien correctamente.
-4. La aplicación estará disponible en `http://localhost:8080` (o el puerto configurado en `docker-compose.yml`).
+4. La aplicación estará disponible en `http://localhost:3000`.
 
 ## Detener y Limpiar Contenedores
 Para detener la aplicación, usa:
