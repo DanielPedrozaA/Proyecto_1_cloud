@@ -68,3 +68,4 @@ Si experimentas problemas, considera lo siguiente:
   ```sh
   docker-compose up --build --force-recreate
   ```
+En la wiki esta el documento de arquitectura, foto de arquitectura, video y postman collection
