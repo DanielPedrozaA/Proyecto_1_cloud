@@ -43,7 +43,7 @@ def retrieve(state: State):
     collection_name = state["collection"]
 
     embeddings = OllamaEmbeddings(
-        model=os.getenv("OLLAMA_MODEL", "mistral:7b"),
+        model=os.getenv("OLLAMA_MODEL", "llama:8b"),
         base_url=os.getenv("OLLAMA_URL", "http://ollama:11434")
     )
 
