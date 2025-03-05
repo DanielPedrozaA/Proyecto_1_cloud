@@ -68,6 +68,3 @@ Si experimentas problemas, considera lo siguiente:
   ```sh
   docker-compose up --build --force-recreate
   ```
-
----
-Este README proporciona una guía básica para ejecutar la aplicación en Docker. Asegúrate de revisar cualquier configuración adicional según tus necesidades.
