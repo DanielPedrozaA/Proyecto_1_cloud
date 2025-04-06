@@ -24,7 +24,7 @@ class User(Base):
     email = Column(String(128), unique=True, nullable=False)
     password = Column(String(128), nullable=False)
 
-class Document(Base):
+class Documentt(Base):
     __tablename__ = "document"
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey("user.id"), nullable=False)

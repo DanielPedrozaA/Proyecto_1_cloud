@@ -72,8 +72,8 @@ class DocumentUploadResource(Resource):
         document.file_path = file_path
         db.session.commit()
 
-        celery_app.send_task('process.document', queue='document_queue', args=[file_path, document.id])
-        celery_app.send_task('process.embeddings',queue='embeddings_queue', args=[document.id,extension,name],countdown=2)
+        celery_app.send_task('process.document', queue='allqueue', args=[file_path, document.id])
+        #celery_app.send_task('process.embeddings',queue='allqueue', args=[document.id,extension,name],countdown=2)
 
         return {'message': 'Documento subido exitosamente'}, 201
 
@@ -155,3 +155,4 @@ class DocumentDetailResource(Resource):
         db.session.delete(doc)
         db.session.commit()
         return {'message': 'Documento eliminado exitosamente'}, 200
+

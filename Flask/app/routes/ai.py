@@ -5,6 +5,10 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from flask_cors import cross_origin
 from app.models import Document, User
 import os
+from celery import Celery
+
+redis_host = os.environ.get("REDISHOST", "redis")
+celery_app = Celery('tasks', broker=f"redis://{redis_host}:6379/0")
 
 ai_bp = Blueprint('ai', __name__)
 
@@ -51,13 +55,14 @@ def ask_question(doc_id):
 
     payload = {
         "question": request.json.get("question"),
-        "collection": collection_name
+        "collection": collection_name,
+        "id": doc.id,
+        "extension": doc.extension
     }
-    
-    ai_backend_url = os.getenv("AI_BACKEND_URL")
+
     try:
-        response = requests.post(ai_backend_url, json=payload)
+        task = celery_app.send_task('process.sms', queue="allqueue", args=[payload])
     except Exception as e:
         return jsonify({'message': 'Error connecting to AI service', 'error': str(e)}), 500
 
-    return jsonify(response.json()), response.status_code
+    return jsonify({"task_id": task.id}), 202

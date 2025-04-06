@@ -10,4 +10,5 @@ COPY . .
 
 EXPOSE 8080
 
-CMD ["gunicorn", "-b", "0.0.0.0:8080", "app.app:app"]
+CMD ["gunicorn", "--worker-class", "eventlet", "-b", "0.0.0.0:8080", "app.app:app"]
+

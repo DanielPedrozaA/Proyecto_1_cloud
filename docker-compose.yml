@@ -45,7 +45,7 @@ services:
   celery_worker:
     build:
       context: ./batch
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.Celery
     container_name: celery-worker
     depends_on:
       redis:
@@ -54,64 +54,6 @@ services:
         condition: service_healthy
     volumes:
         - uploaded_documents:/flask_app/uploadedDocuments
-    
-  celery_worker_ai:
-    build:
-      context: ./batchAI
-      dockerfile: Dockerfile
-    container_name: celery-worker-AI
-    depends_on:
-      redis:
-        condition: service_started
-      ollama:
-        condition: service_started
-      db:
-        condition: service_healthy
-    volumes:
-        - uploaded_documents:/flask_app/uploadedDocuments
-        - chroma_db:/chroma_db
-
-  ollama:
-    mem_limit: 12g
-    image: ollama/ollama:latest
-    container_name: ollama
-    restart: always
-    ports:
-      - "11434:11434"
-    volumes:
-      - ollama_data:/root/.ollama
-    entrypoint: ["/bin/sh", "-c"]
-    command:
-      - |
-        ollama serve & 
-        sleep 10 && 
-        ollama pull llama3:8b && 
-        tail -f /dev/null
-
-  flask-ai:
-    build:
-      context: ./FlaskAI
-      dockerfile: Dockerfile.Flask
-    ports:
-      - "5000:5000"
-    depends_on:
-      - redis
-    environment:
-      FLASK_APP: "app.py"
-      FLASK_ENV: "development"
-    env_file:
-      - ./FlaskAI/.env
-    volumes:
-      - chroma_db:/chroma_db
-
-  celery-worker-messages:
-    build:
-      context: ./FlaskAI
-      dockerfile: Dockerfile.Celery
-    depends_on:
-      - flask-ai
-    volumes:
-      - chroma_db:/chroma_db
 
   frontend:
     build:
@@ -124,5 +66,3 @@ services:
 
 volumes:
   uploaded_documents:
-  ollama_data:
-  chroma_db:
