@@ -1,71 +1,56 @@
-# README - Correr la Aplicación en Docker
+# README - Correr la Aplicación en CCP
 
-## Requisitos del sistema
-Para ejecutar esta aplicación en Docker, es necesario que tu máquina cumpla con los siguientes requisitos:
+## 1. Configuración Inicial
 
-- **Sistema Operativo**: Windows, macOS o Linux.
-- **RAM**: Al menos **32GB** de memoria RAM.
-- **Docker**: Instalado y configurado correctamente.
-- **Docker Compose**: Instalado (Docker Desktop ya lo incluye en versiones recientes).
+### Base de Datos
+Se debe iniciar la instancia de **Cloud SQL** configurada y funcionando correctamente.
 
-## Instalación de Docker y Docker Compose
-Si aún no tienes Docker y Docker Compose instalados, sigue estas instrucciones:
+## 2. Despliegue de Máquinas Virtuales
 
-### Windows y macOS
-1. Descarga e instala [Docker Desktop](https://www.docker.com/products/docker-desktop/).
-2. Verifica la instalación ejecutando:
-   ```sh
-   docker --version
-   docker-compose --version
-   ```
+Todas las máquinas virtuales (VMs) deben ser iniciadas antes de continuar. Estas ya cuentan con un script interno que inicia automáticamente los contenedores Docker necesarios para ejecutar cada componente.
 
-### Linux
-1. Instala Docker:
-   ```sh
-   sudo apt update
-   sudo apt install -y docker.io
-   ```
-2. Instala Docker Compose:
-   ```sh
-   sudo apt install -y docker-compose
-   ```
-3. Verifica la instalación:
-   ```sh
-   docker --version
-   docker-compose --version
-   ```
-   
-## Cómo Ejecutar la Aplicación
-Para correr la aplicación en Docker, sigue estos pasos:
+Asegúrate de ejecutar todas estas VMs:
 
-1. Asegúrate de estar en la carpeta del proyecto donde se encuentra el archivo `docker-compose.yml`.
-2. Ejecuta el siguiente comando para construir y correr los contenedores:
-   ```sh
-   docker-compose up --build
-   ```
-3. Espera a que los servicios se inicien correctamente.
-4. La aplicación estará disponible en `http://localhost:3000`.
+- **file-server**
+- **front**
+- **redis-server**
+- **servidor-webos**
+- **worker**
 
-## Detener y Limpiar Contenedores
-Para detener la aplicación, usa:
-```sh
-docker-compose down
-```
-Si deseas eliminar los volúmenes y limpiar completamente los contenedores:
-```sh
-docker-compose down -v
+## 3. Creación de la Clave de API
+
+Sigue estos pasos para generar y configurar la clave de API necesaria:
+
+1. Ingresa a tu cuenta de GCP.
+2. Navega a **APIs y servicios > Credenciales**.
+3. Crea una nueva **Clave de API**.
+4. Copia la clave generada.
+
+## 4. Configuración del Worker
+
+Desde tu terminal SSH en la VM del **worker**, ejecuta:
+
+```bash
+sudo su
+cd ..
+cd Proyecto/
+cd Proyecto_1_cloud/
+cd batch
+nano .env
 ```
 
-## Solución de Problemas
-Si experimentas problemas, considera lo siguiente:
-- Verifica que Docker esté corriendo con `docker ps`.
-- Asegúrate de tener suficiente memoria disponible (al menos 32GB de RAM).
-- Revisa los logs con:
-  ```sh
-  docker-compose logs
-  ```
-- Si necesitas reconstruir completamente las imágenes, usa:
-  ```sh
-  docker-compose up --build --force-recreate
-  ```
-En la wiki esta el documento de arquitectura, foto de arquitectura, video y postman collection
+Dentro del archivo `.env`, busca la línea que inicia con:
+
+```plaintext
+GOOGLE_API_KEY=
+```
+
+Pega la clave generada anteriormente justo después del signo `=`.
+
+Guarda y cierra el archivo  luego `Ctrl+X` si estás usando nano.
+
+## 5. Finalización
+
+Ahora la aplicación ya está lista para utilizarse. Puedes acceder a ella usando la **dirección IP externa de la VM del front** desde tu navegador web.
+
+
