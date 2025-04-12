@@ -18,7 +18,7 @@ function DocumentDetail({ docId }) {
     const textareaRef = useRef(null);
 
     // Create socket connection to your AI backend
-    const socket = io("http://localhost:5000");
+    const socket = io("http://35.226.3.30:8080");
 
     useEffect(() => {
         if (!docId) return;
