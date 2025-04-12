@@ -1,3 +1,4 @@
+
 FROM python:3.11.4
 
 WORKDIR /flask_app
@@ -10,5 +11,5 @@ COPY . .
 
 EXPOSE 8080
 
-CMD ["gunicorn", "--worker-class", "eventlet", "-b", "0.0.0.0:8080", "app.app:app"]
+CMD ["gunicorn", "--worker-class", "eventlet", "-b", "0.0.0.0:8080", "app.wsgi:app"]
 

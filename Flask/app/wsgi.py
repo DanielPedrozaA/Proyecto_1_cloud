@@ -1,16 +1,16 @@
 from app import create_app
-import os
 from flask_socketio import SocketIO
+import os
 
 app = create_app()
 
-# 🔹 Configuración de Redis
+# Configuración de Redis para WebSockets
 redis_host = os.getenv("REDIS_HOST", "redis")
 redis_port = os.getenv("REDIS_PORT", "6379")
 
-# 🔹 Configuración de WebSockets
 socketio = SocketIO(app, async_mode="eventlet", message_queue=f"redis://{redis_host}:{redis_port}", cors_allowed_origins="*")
 
+# Eventos WebSocket
 @socketio.on("connect")
 def handle_connect():
     print("Client connected")
@@ -23,6 +23,6 @@ def handle_disconnect():
 def handle_custom_event(data):
     print("Received data:", data)
 
+# 🔹 Esta es la línea que Gunicorn necesita (¡debe ser un callable!)
+app = app
 
-if __name__ == "main":
-    socketio.run(app, host="0.0.0.0", port=8080, debug=True)

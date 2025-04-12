@@ -7,7 +7,7 @@ from app.models import Document, User
 import os
 from celery import Celery
 
-redis_host = os.environ.get("REDISHOST", "redis")
+redis_host = os.environ.get("REDIS_HOST", "redis")
 celery_app = Celery('tasks', broker=f"redis://{redis_host}:6379/0")
 
 ai_bp = Blueprint('ai', __name__)
