@@ -68,3 +68,6 @@ def refresh_token():
 def check_if_token_revoked(jwt_header, jwt_payload):
     jti = jwt_payload["jti"]
     return jti in revoked_tokens
+
+def health():
+    return {'mensaje': 'API funcionando correctamente'}, 200

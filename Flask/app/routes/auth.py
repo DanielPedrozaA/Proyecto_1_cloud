@@ -1,6 +1,6 @@
 from flask import Blueprint, request
 from flask_jwt_extended import jwt_required
-from app.views.auth import crear_usuario, login, logout, refresh_token
+from app.views.auth import crear_usuario, login, logout, refresh_token, health
 
 # Create Blueprint for authentication routes
 auth_bp = Blueprint('auth', __name__)
@@ -28,3 +28,8 @@ def logout_route():
 @jwt_required(refresh=True)
 def refresh_route():
     return refresh_token()
+
+# Health
+@auth_bp.route('/health', methods=['POST'])
+def getHealth():
+    return health()
