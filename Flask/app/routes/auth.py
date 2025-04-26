@@ -30,6 +30,6 @@ def refresh_route():
     return refresh_token()
 
 # Health
-@auth_bp.route('/health', methods=['POST'])
+@auth_bp.route('/health', methods=['GET'])
 def getHealth():
     return health()
