@@ -42,19 +42,6 @@ services:
     volumes:
       - uploaded_documents:/flask_app/uploadedDocuments
     
-  celery_worker:
-    build:
-      context: ./batch
-      dockerfile: Dockerfile.Celery
-    container_name: celery-worker
-    depends_on:
-      redis:
-        condition: service_started
-      db:
-        condition: service_healthy
-    volumes:
-        - uploaded_documents:/flask_app/uploadedDocuments
-
   frontend:
     build:
       context: ./front

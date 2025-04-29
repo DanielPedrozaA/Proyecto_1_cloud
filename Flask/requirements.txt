@@ -15,3 +15,5 @@ requests
 flask-socketio
 eventlet
 pysmb
+google-cloud-storage
+google-auth

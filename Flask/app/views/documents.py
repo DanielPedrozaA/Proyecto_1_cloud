@@ -6,7 +6,24 @@ from flask_restful import Resource
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from ..models import db, User, Document, Status, Status_Embeddings
 from celery import Celery
-from smb.SMBConnection import SMBConnection
+from google.cloud import storage
+from google.oauth2 import service_account
+
+# Ruta local al archivo JSON
+#key_path = "/flask_app/keyfile.json"
+
+# Cargar credenciales manualmente
+#credentials = service_account.Credentials.from_service_account_file(key_path)
+
+# Crear cliente de GCS con esas credenciales
+#client = storage.Client(credentials=credentials, project="desarollo-de-soluciones-cloud")
+
+GCS_BUCKET_NAME = os.environ.get("GCS_BUCKET_NAME", "ultra-pro-bucket")
+
+# No cargamos credenciales manualmente, GCP las inyecta por IAM
+client = storage.Client()
+
+bucket = client.bucket(GCS_BUCKET_NAME)
 
 # Configuración de Celery
 redis_host = os.environ.get("REDISHOST", "redis")
@@ -17,27 +34,10 @@ ALLOWED_DOC_EXTENSIONS = {'pdf', 'txt', 'md'}
 def allowed_doc_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_DOC_EXTENSIONS
 
-# Configuración de la conexión SMB (parámetros obtenidos desde variables de entorno)
-SMB_SERVER = os.environ.get("SMB_SERVER")  # IP o hostname de la VM que tiene el sistema de archivos
-SMB_PORT = int(os.environ.get("SMB_PORT", "445"))
-SMB_USERNAME = os.environ.get("SMB_USERNAME")
-SMB_PASSWORD = os.environ.get("SMB_PASSWORD")
-SMB_SHARE = os.environ.get("SMB_SHARE")  # Nombre del recurso compartido en la VM remota
-SMB_DIRECTORY = os.environ.get("SMB_DIRECTORY", "uploadedDocuments")  # Directorio dentro del recurso compartido
-MY_NAME = os.environ.get("MY_NAME", "backend")  # Nombre del cliente para la conexión SMB
-REMOTE_NAME = os.environ.get("REMOTE_NAME", "fileserver")  # Nombre de la VM remota en la red
-
 class DocumentUploadResource(Resource):
-    """
-    POST /documents/upload
-    Sube un documento (PDF, TXT, Markdown) a la VM remota que tiene el sistema de archivos vía SMB.
-    """
     @jwt_required()
     def post(self):
         current_user = get_jwt_identity()
-        if not current_user:
-            return {'message': 'Acceso no autorizado'}, 403
-
         user = User.query.filter_by(id=current_user).first()
         if not user:
             return {'message': 'Usuario no encontrado'}, 404
@@ -46,14 +46,10 @@ class DocumentUploadResource(Resource):
             return {'message': 'No se ha seleccionado ningún archivo'}, 412
 
         file = request.files['file']
-        if file.filename == '':
-            return {'message': 'No se ha seleccionado ningún archivo'}, 412
-
-        if not allowed_doc_file(file.filename):
-            return {'message': 'Extensión de archivo no permitida'}, 412
+        if file.filename == '' or not allowed_doc_file(file.filename):
+            return {'message': 'Archivo inválido'}, 412
 
         extension = file.filename.rsplit('.', 1)[1].lower()
-
         document = Document(
             user_id=user.id,
             timestamp=datetime.utcnow(),
@@ -61,9 +57,8 @@ class DocumentUploadResource(Resource):
             embbedings_status=Status_Embeddings.PENDING,
             extension=extension,
             original_filename=file.filename,
-            file_path=''
+            file_path=""
         )
-
         db.session.add(document)
         try:
             db.session.commit()
@@ -71,30 +66,12 @@ class DocumentUploadResource(Resource):
             db.session.rollback()
             return {'message': f'Error en la base de datos: {str(e)}'}, 500
 
-        # Se define el nombre remoto para el archivo
         filename = f"document_{document.id}.{extension}"
-        remote_path = filename
+        blob = bucket.blob(filename)
+        blob.upload_from_file(file, content_type=file.content_type)
 
-        # Se lee el contenido del archivo en memoria
-        file_data = file.read()
-        bio = io.BytesIO(file_data)
-
-        # Se establece la conexión SMB y se almacena el archivo en la VM remota
-        try:
-            conn = SMBConnection(SMB_USERNAME, SMB_PASSWORD, MY_NAME, REMOTE_NAME, use_ntlm_v2=True)
-            if not conn.connect(SMB_SERVER, SMB_PORT):
-                return {'message': 'Error al conectar con el servidor de archivos'}, 500
-
-            conn.storeFile(SMB_SHARE, remote_path, bio)
-        except Exception as e:
-            return {'message': f'Error al subir el archivo: {str(e)}'}, 500
-
-        document.file_path = remote_path
+        document.file_path = filename
         db.session.commit()
-
-        # Se envía la tarea a Celery con la ruta remota
-        #celery_app.send_task('process.document', queue='allqueue', args=[remote_path, document.id])
-        # celery_app.send_task('process.embeddings', queue='allqueue', args=[document.id, extension, file.filename.rsplit('.', 1)[0].lower()], countdown=2)
 
         return {'message': 'Documento subido exitosamente'}, 201
 
@@ -176,16 +153,9 @@ class DocumentDetailResource(Resource):
         return {'message': 'Documento eliminado exitosamente'}, 200
 
 class DocumentDownloadResource(Resource):
-    """
-    GET /documents/<doc_id>/download
-    Descarga el archivo almacenado en la VM remota a través de SMB.
-    """
     @jwt_required()
     def get(self, doc_id):
         current_user = get_jwt_identity()
-        if not current_user:
-            return {'message': 'Acceso no autorizado'}, 403
-
         user = User.query.filter_by(id=current_user).first()
         if not user:
             return {'message': 'Usuario no encontrado'}, 404
@@ -195,14 +165,11 @@ class DocumentDownloadResource(Resource):
             return {'message': 'Documento no encontrado'}, 404
 
         try:
-            conn = SMBConnection(SMB_USERNAME, SMB_PASSWORD, MY_NAME, REMOTE_NAME, use_ntlm_v2=True)
-            if not conn.connect(SMB_SERVER, SMB_PORT):
-                return {'message': 'Error al conectar con el servidor de archivos'}, 500
-
+            blob = bucket.blob(doc.file_path)
             file_obj = io.BytesIO()
-            conn.retrieveFile(SMB_SHARE, doc.file_path, file_obj)
+            blob.download_to_file(file_obj)
             file_obj.seek(0)
         except Exception as e:
             return {'message': f'Error al descargar el archivo: {str(e)}'}, 500
 
-        return send_file(file_obj, attachment_filename=doc.original_filename, as_attachment=True)
+        return send_file(file_obj, download_name=doc.original_filename, as_attachment=True)
