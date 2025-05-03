@@ -17,3 +17,4 @@ eventlet
 pysmb
 google-cloud-storage
 google-auth
+google-cloud-pubsub

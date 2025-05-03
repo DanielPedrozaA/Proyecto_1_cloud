@@ -32,3 +32,4 @@ sqlalchemy
 unstructured
 chromadb
 pysmb
+google-cloud-pubsub

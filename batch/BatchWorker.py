@@ -2,6 +2,9 @@
 import os
 import re
 import shutil
+import json
+import tempfile
+import io
 
 # Third-party libraries
 from dotenv import load_dotenv
@@ -11,6 +14,7 @@ from celery import Celery, current_task
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from typing_extensions import List, TypedDict
+from google.cloud import pubsub_v1
 
 # Langchain and related libraries
 from langchain import hub
@@ -27,31 +31,23 @@ from langchain_chroma import Chroma
 from langchain_core.documents import Document
 from langgraph.graph import START, StateGraph
 import chromadb
-import io
-# Local application
-from models import Documentt, Status_Embeddings, Base, Status
 from smb.SMBConnection import SMBConnection
-import tempfile
 
 load_dotenv()
 
-# 🔹 Configuración de Redis
-redis_host = os.getenv("REDIS_HOST", "redis")
-redis_port = os.getenv("REDIS_PORT", "6379")
+# 🔹 Configuración de Google Cloud Pub/Sub
+project_id = os.getenv("GCP_PROJECT_ID")
+subscription_id = os.getenv("GCP_SUBSCRIPTION_ID")
+
+# Configuración de Pub/Sub
+subscriber = pubsub_v1.SubscriberClient()
+subscription_path = subscriber.subscription_path(project_id, subscription_id)
 
 # 🔹 Configuración de WebSockets
-socketio = SocketIO(message_queue=f"redis://{redis_host}:{redis_port}", cors_allowed_origins="*")
+socketio = SocketIO(message_queue=subscription_path, cors_allowed_origins="*")
 
 # 🔹 Configuración de Celery
-celery_app = Celery('tasks', broker=f"redis://{redis_host}:{redis_port}/0")
-
-# Configuración de la base de datos
-
-class State(TypedDict):
-    question: str
-    context: List[Document]
-    answer: str
-    collection: str
+celery_app = Celery('tasks', broker=f"pubsub://{project_id}/{subscription_id}")
 
 # Configuración de la base de datos
 db_user = os.environ.get("POSTGRES_USER", "admin")
@@ -60,20 +56,12 @@ db_host = os.environ.get("POSTGRES_HOST", "db")
 db_name = os.environ.get("POSTGRES_DB", "rag_saas")
 db_port = os.environ.get("POSTGRES_PORT", "5432")
 DATABASE_URL = f"postgresql+psycopg2://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
-SMB_SERVER = os.environ.get("SMB_SERVER")  # IP o hostname de la VM que tiene el sistema de archivos
-SMB_PORT = int(os.environ.get("SMB_PORT", "445"))
-SMB_USERNAME = os.environ.get("SMB_USERNAME")
-SMB_PASSWORD = os.environ.get("SMB_PASSWORD")
-SMB_SHARE = os.environ.get("SMB_SHARE")  # Nombre del recurso compartido en la VM remota
-SMB_DIRECTORY = os.environ.get("SMB_DIRECTORY", "uploadedDocuments")  # Directorio dentro del recurso compartido
-MY_NAME = os.environ.get("MY_NAME", "backend")  # Nombre del cliente para la conexión SMB
-REMOTE_NAME = os.environ.get("REMOTE_NAME", "fileserver")  # Nombre de la VM remota en la red
-
 
 engine = create_engine(DATABASE_URL)
 Base.metadata.create_all(engine)
 Session = sessionmaker(bind=engine)
 
+# Configuración de los loaders de documentos
 def get_loader(file_input, extension):
     """
     Si file_input es una ruta (str), se utiliza directamente.
@@ -100,8 +88,7 @@ def get_loader(file_input, extension):
     else:
         raise ValueError(f"Unsupported file format: {extension}")
 
-
-# Crear nuevo usuario
+# Función para gestionar embeddings
 def embbedings(document_id,extension,collection_name):
     try:
         conn = SMBConnection(SMB_USERNAME, SMB_PASSWORD, MY_NAME, REMOTE_NAME, use_ntlm_v2=True)
@@ -143,15 +130,9 @@ def embbedings(document_id,extension,collection_name):
     finally:
         session.close()
 
-
-class State(TypedDict):
-    question: str
-    context: List[Document]
-    answer: str
-    collection: str
-
+# Funciones para recuperar y generar respuestas
 def retrieve(state: State):
-    chroma_path = os.getenv("CHROMA_DB_PATH", "/chroma_db")  # Cargar ruta desde el .env
+    chroma_path = os.getenv("CHROMA_DB_PATH", "/chroma_db")
     collection_name = state["collection"]
 
     embeddings = GoogleGenerativeAIEmbeddings(
@@ -195,9 +176,8 @@ def question(data):
 # 🔹 Tarea en Segundo Plano con Celery
 @celery_app.task(name='process.sms', queue="allqueue", bin=True)
 def long_running_task(data):
-    chroma_path = "/chroma_db"  # or os.getenv("CHROMA_DB_PATH")
+    chroma_path = "/chroma_db"
     client = chromadb.PersistentClient(path=chroma_path)
-
 
     collections = client.list_collections()
     exists = data["collection"] in collections
@@ -210,4 +190,3 @@ def long_running_task(data):
     print(respuesta["respuesta"])
     socketio.emit("task_update", {"task_id": current_task.request.id, "message": respuesta["respuesta"]})
     return f"Task completed"
-

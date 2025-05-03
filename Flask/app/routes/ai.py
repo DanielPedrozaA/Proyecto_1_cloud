@@ -1,12 +1,19 @@
-import re
+from google.cloud import pubsub_v1
+import os
 from flask import Blueprint, request, jsonify
-import requests
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from flask_cors import cross_origin
 from app.models import Document, User
-import os
+import re
 from celery import Celery
 
+# Set up Google Cloud Pub/Sub publisher
+project_id = os.getenv("GCP_PROJECT_ID")
+topic_id = os.getenv("PUBSUB_TOPIC_ID")
+publisher = pubsub_v1.PublisherClient()
+topic_path = publisher.topic_path(project_id, topic_id)
+
+# Redis configuration
 redis_host = os.environ.get("REDIS_HOST", "redis")
 celery_app = Celery('tasks', broker=f"redis://{redis_host}:6379/0")
 
@@ -61,8 +68,13 @@ def ask_question(doc_id):
     }
 
     try:
-        task = celery_app.send_task('process.sms', queue="allqueue", args=[payload])
-    except Exception as e:
-        return jsonify({'message': 'Error connecting to AI service', 'error': str(e)}), 500
+        # Convert payload to a JSON string and then to bytes
+        message_data = str(payload).encode("utf-8")
+        
+        # Publish the message to Pub/Sub
+        publisher.publish(topic_path, message_data)
 
-    return jsonify({"task_id": task.id}), 202
+    except Exception as e:
+        return jsonify({'message': 'Error sending message to Pub/Sub', 'error': str(e)}), 500
+
+    return jsonify({"message": "Message sent to worker", "status": "waiting for response"}), 202
