@@ -37,15 +37,14 @@ import pickle
 # Local application
 from models import Documentt, Status_Embeddings, Base, Status
 from smb.SMBConnection import SMBConnection
-import tempfile
 
 load_dotenv()
 
-# 🔹 Configuración de WebSockets
+# 馃敼 Configuraci贸n de WebSockets
 app = Flask(__name__)
 socketio = SocketIO(app, cors_allowed_origins="*")
 
-# 🔹 Configuración de Google Cloud
+# 馃敼 Configuraci贸n de Google Cloud
 project_id = os.getenv("GCP_PROJECT_ID", "desarollo-de-soluciones-cloud")
 gcs_bucket_name = os.getenv("GCS_BUCKET_NAME", "ultra-pro-bucket")
 gcs_embeddings_bucket_name = os.getenv("GCS_BUCKET_EMBEDDINGS_NAME", "chimba-embeddings")
@@ -53,14 +52,14 @@ pubsub_topic = os.getenv("PUBSUB_TOPIC", "rag-tasks")
 pubsub_subscription = os.getenv("PUBSUB_SUBSCRIPTION", "rag-worker-subscription")
 pubsub_results_topic = os.getenv("PUBSUB_RESULTS_TOPIC", "rag-results")
 
-# Configuración de la base de datos
+# Configuraci贸n de la base de datos
 class State(TypedDict):
     question: str
     context: List[Document]
     answer: str
     collection: str
 
-# Configuración de la base de datos
+# Configuraci贸n de la base de datos
 db_user = os.environ.get("POSTGRES_USER", "admin")
 db_password = os.environ.get("POSTGRES_PASSWORD", "password")
 db_host = os.environ.get("POSTGRES_HOST", "db")
@@ -73,7 +72,7 @@ SMB_USERNAME = os.environ.get("SMB_USERNAME")
 SMB_PASSWORD = os.environ.get("SMB_PASSWORD")
 SMB_SHARE = os.environ.get("SMB_SHARE")  # Nombre del recurso compartido en la VM remota
 SMB_DIRECTORY = os.environ.get("SMB_DIRECTORY", "uploadedDocuments")  # Directorio dentro del recurso compartido
-MY_NAME = os.environ.get("MY_NAME", "backend")  # Nombre del cliente para la conexión SMB
+MY_NAME = os.environ.get("MY_NAME", "backend")  # Nombre del cliente para la conexi贸n SMB
 REMOTE_NAME = os.environ.get("REMOTE_NAME", "fileserver")  # Nombre de la VM remota en la red
 
 engine = create_engine(DATABASE_URL)
@@ -85,7 +84,7 @@ def get_loader(file_input, extension):
     Si file_input es una ruta (str), se utiliza directamente.
     Si es un objeto file-like (por ejemplo, io.BytesIO), se escribe su contenido en un archivo temporal.
     """
-    # Si ya es una ruta, úsala tal cual.
+    # Si ya es una ruta, 煤sala tal cual.
     if isinstance(file_input, str):
         file_path = file_input
     else:
@@ -94,7 +93,7 @@ def get_loader(file_input, extension):
         with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
             tmp.write(file_input.read())
             file_path = tmp.name
-        # Reinicia el puntero del objeto, por si se necesita más adelante.
+        # Reinicia el puntero del objeto, por si se necesita m谩s adelante.
         file_input.seek(0)
 
     if extension == "txt":
@@ -130,7 +129,7 @@ def upload_embeddings_to_gcs(collection_name, embeddings_data):
     pickled_data = pickle.dumps(embeddings_data)
     blob.upload_from_string(pickled_data)
     
-    print(f"📂 Embeddings para {collection_name} guardados en GCS bucket: {gcs_embeddings_bucket_name}")
+    print(f"馃搨 Embeddings para {collection_name} guardados en GCS bucket: {gcs_embeddings_bucket_name}")
 
 def download_embeddings_from_gcs(collection_name):
     """Descarga los embeddings desde Google Cloud Storage"""
@@ -151,7 +150,7 @@ def embbedings(document_id, extension, collection_name):
     try:
         # Descargamos el documento de GCS en lugar de SMB
         file_obj = download_from_gcs(document_id, extension)
-
+        
         loader = get_loader(file_obj, extension)
         documents = loader.load()
         text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
@@ -171,11 +170,11 @@ def embbedings(document_id, extension, collection_name):
                 "metadata": doc.metadata,
                 "embedding": vector
             }
-
+        
         # Guardar los embeddings en GCS
         upload_embeddings_to_gcs(collection_name, embeddings_data)
-
-        print(f"📂 Se han generado y guardado {len(docs)} fragmentos de embeddings.")
+        
+        print(f"馃搨 Se han generado y guardado {len(docs)} fragmentos de embeddings.")
 
         # Actualizar estado en la base de datos
         session = Session()
@@ -189,7 +188,7 @@ def embbedings(document_id, extension, collection_name):
             raise e
         finally:
             session.close()
-
+            
         return True
     except Exception as e:
         print(f"Error al generar embeddings: {str(e)}")
@@ -211,17 +210,17 @@ def retrieve(state: State):
     )
     query_embedding = embeddings_model.embed_query(state["question"])
     
-    # Búsqueda de similitud simple
+    # B煤squeda de similitud simple
     similarities = []
     for idx, item in embeddings_data.items():
         doc_embedding = item["embedding"]
-
-        # Cálculo de similitud de coseno
+        
+        # C谩lculo de similitud de coseno
         dot_product = sum(a * b for a, b in zip(query_embedding, doc_embedding))
         magnitude_a = sum(a * a for a in query_embedding) ** 0.5
         magnitude_b = sum(b * b for b in doc_embedding) ** 0.5
         similarity = dot_product / (magnitude_a * magnitude_b) if magnitude_a * magnitude_b > 0 else 0
-
+        
         similarities.append((idx, similarity))
     
     # Ordenar por similitud y tomar los 4 mejores resultados
@@ -258,58 +257,53 @@ def question(data):
 
     return {"respuesta": response["answer"]}
 
-# 🔹 Procesamiento de mensajes de Pub/Sub
+# 馃敼 Procesamiento de mensajes de Pub/Sub
 def process_task(data):
     try:
+        print("Iniciando procesamiento de tarea...")
+        
+        # Verifica si la colecci贸n de embeddings ya existe
         collection_exists = check_if_collection_exists(data["collection"])
+        print(f"驴Colecci贸n existe?: {collection_exists}")
         
         if not collection_exists:
-            try:
-                if not embbedings(data["id"], data["extension"], data["collection"]):
-                    raise ValueError("Fallo al generar embeddings")
-            except Exception as e:
-                print(f"Error generando embeddings: {str(e)}")
-                raise
-
-        try:
-            respuesta = question(data)
-        except Exception as e:
-            print(f"Error generando respuesta: {str(e)}")
-            raise
-
-        try:
-            publish_result(data["task_id"], respuesta["respuesta"])
-        except Exception as e:
-            print(f"Error publicando resultado: {str(e)}")
-            raise
-
+            # Si no existe, procesamos los embeddings
+            embbedings(data["id"], data["extension"], data["collection"])
+        
+        # Realiza la b煤squeda de contexto y generaci贸n de respuesta
+        respuesta = question(data)
+        print(f"Respuesta generada: {respuesta}")
+        
+        # Publicar la respuesta en el tema de resultados (aqu铆 podr铆as usar el 'id' como identificador)
+        publish_result(data["id"], respuesta["respuesta"])
+        
         return respuesta["respuesta"]
-
     except Exception as e:
-        print(f"Error en process_task: {str(e)}")
-        raise
+        print(f"Error en la funci贸n process_task: {str(e)}")
+        raise e  # Re-lanzar el error para que se maneje en el callback
 
 def check_if_collection_exists(collection_name):
-    """Verifica si existe una colección de embeddings en GCS"""
+    """Verifica si existe una colecci贸n de embeddings en GCS"""
     storage_client = storage.Client(project=project_id)
     bucket = storage_client.bucket(gcs_embeddings_bucket_name)
     blob = bucket.blob(f"{collection_name}_embeddings.pkl")
     
     return blob.exists()
 
-def publish_result(task_id, result):
+def publish_result(id, result):
     """Publica el resultado en el tema de resultados de Pub/Sub"""
     publisher = pubsub_v1.PublisherClient()
     topic_path = publisher.topic_path(project_id, pubsub_results_topic)
     
     message_data = {
-        "task_id": task_id,
+        "id": id,  # Usar 'id' en lugar de 'task_id'
         "result": result
     }
     
     message_bytes = json.dumps(message_data).encode("utf-8")
-    publisher.publish(topic_path, data=message_bytes)
-    print(f"Resultado publicado para la tarea {task_id}")
+    future = publisher.publish(topic_path, data=message_bytes)
+    print(f"Resultado publicado para la tarea con id: {id}")
+    print(f'published message {future.result()}')
 
 def start_pubsub_subscriber():
     """Inicia un suscriptor para escuchar mensajes de Pub/Sub"""
@@ -318,14 +312,29 @@ def start_pubsub_subscriber():
     
     def callback(message):
         try:
+            # Decodificar el mensaje
             message_data = json.loads(message.data.decode("utf-8"))
             print(f"Mensaje recibido: {message_data}")
-            process_task(message_data)
+            
+            # Verificar que los datos esenciales est茅n presentes
+            if "question" not in message_data or "collection" not in message_data or "id" not in message_data:
+                print("Error: Faltan campos necesarios en el mensaje")
+                message.nack()  # No confirmar el mensaje si falta informaci贸n clave
+                return
+            
+            # Procesar la tarea (llamando a 'process_task' que ahora no depende de task_id)
+            respuesta = process_task(message_data)
+            
+            # Confirmar el mensaje solo despu茅s de procesarlo correctamente
             message.ack()
+            print(f"Mensaje procesado y confirmado: {message_data}")
+        
         except Exception as e:
             print(f"Error al procesar el mensaje: {str(e)}")
-            message.nack()
+            message.nack()  # Si hay un error, no confirmar el mensaje
+            print("Mensaje no confirmado (nack)")
     
+    # Iniciar el suscriptor
     streaming_pull_future = subscriber.subscribe(
         subscription_path, callback=callback
     )
@@ -337,10 +346,19 @@ def start_pubsub_subscriber():
         streaming_pull_future.cancel()
         print(f"Error en el suscriptor: {str(e)}")
 
+# 馃敼 Iniciar la aplicaci贸n
 if __name__ == "__main__":
+    # Iniciar el suscriptor de Pub/Sub en un hilo separado
     subscriber_thread = threading.Thread(target=start_pubsub_subscriber)
     subscriber_thread.daemon = True
     subscriber_thread.start()
-
+    
+    # Iniciar solo el suscriptor sin el servidor web
     print("Iniciando worker de Pub/Sub...")
-
+    try:
+        # Mantener el programa en ejecuci贸n
+        while True:
+            import time
+            time.sleep(60)
+    except KeyboardInterrupt:
+        print("Worker detenido por el usuario")
