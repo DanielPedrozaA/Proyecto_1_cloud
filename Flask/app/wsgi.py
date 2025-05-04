@@ -24,5 +24,9 @@ def handle_custom_event(data):
     print("Received data:", data)
 
 # 🔹 Esta es la línea que Gunicorn necesita (¡debe ser un callable!)
+<<<<<<< Updated upstream
 app = app
 
+=======
+app = app
+>>>>>>> Stashed changes
