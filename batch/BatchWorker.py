@@ -2,14 +2,11 @@
 import os
 import re
 import shutil
-<<<<<<< Updated upstream
-=======
 import json
 import base64
 import tempfile
 import io
 from typing import Optional
->>>>>>> Stashed changes
 
 # Third-party libraries
 from dotenv import load_dotenv
@@ -20,10 +17,7 @@ from google.cloud import storage
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from typing_extensions import List, TypedDict
-<<<<<<< Updated upstream
-=======
 import threading
->>>>>>> Stashed changes
 
 # Langchain and related libraries (con importaciones actualizadas)
 from langchain import hub
@@ -38,13 +32,8 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain_core.documents import Document
 from langgraph.graph import START, StateGraph
-<<<<<<< Updated upstream
-import chromadb
-import io
-=======
 import pickle
 
->>>>>>> Stashed changes
 # Local application
 from models import Documentt, Status_Embeddings, Base, Status
 from smb.SMBConnection import SMBConnection
@@ -52,20 +41,6 @@ import tempfile
 
 load_dotenv()
 
-<<<<<<< Updated upstream
-# 🔹 Configuración de Redis
-redis_host = os.getenv("REDIS_HOST", "redis")
-redis_port = os.getenv("REDIS_PORT", "6379")
-
-# 🔹 Configuración de WebSockets
-socketio = SocketIO(message_queue=f"redis://{redis_host}:{redis_port}", cors_allowed_origins="*")
-
-# 🔹 Configuración de Celery
-celery_app = Celery('tasks', broker=f"redis://{redis_host}:{redis_port}/0")
-
-# Configuración de la base de datos
-
-=======
 # 🔹 Configuración de WebSockets
 app = Flask(__name__)
 socketio = SocketIO(app, cors_allowed_origins="*")
@@ -79,7 +54,6 @@ pubsub_subscription = os.getenv("PUBSUB_SUBSCRIPTION", "rag-worker-subscription"
 pubsub_results_topic = os.getenv("PUBSUB_RESULTS_TOPIC", "rag-results")
 
 # Configuración de la base de datos
->>>>>>> Stashed changes
 class State(TypedDict):
     question: str
     context: List[Document]
@@ -101,10 +75,6 @@ SMB_SHARE = os.environ.get("SMB_SHARE")  # Nombre del recurso compartido en la V
 SMB_DIRECTORY = os.environ.get("SMB_DIRECTORY", "uploadedDocuments")  # Directorio dentro del recurso compartido
 MY_NAME = os.environ.get("MY_NAME", "backend")  # Nombre del cliente para la conexión SMB
 REMOTE_NAME = os.environ.get("REMOTE_NAME", "fileserver")  # Nombre de la VM remota en la red
-<<<<<<< Updated upstream
-
-=======
->>>>>>> Stashed changes
 
 engine = create_engine(DATABASE_URL)
 Base.metadata.create_all(engine)
@@ -138,28 +108,11 @@ def get_loader(file_input, extension):
     else:
         raise ValueError(f"Unsupported file format: {extension}")
 
-<<<<<<< Updated upstream
-
-# Crear nuevo usuario
-def embbedings(document_id,extension,collection_name):
-    try:
-        conn = SMBConnection(SMB_USERNAME, SMB_PASSWORD, MY_NAME, REMOTE_NAME, use_ntlm_v2=True)
-        if not conn.connect(SMB_SERVER, SMB_PORT):
-            return {'message': 'Error al conectar con el servidor de archivos'}, 500
-
-        file_obj = io.BytesIO()
-        conn.retrieveFile(SMB_SHARE,f"document_{document_id}.{extension}", file_obj)
-        file_obj.seek(0)
-
-    except Exception as e:
-        return {'message': f'Error al subir el archivo: {str(e)}'}, 500
-=======
 def download_from_gcs(document_id, extension):
     """Descarga un archivo desde Google Cloud Storage"""
     storage_client = storage.Client(project=project_id)
     bucket = storage_client.bucket(gcs_bucket_name)
     blob = bucket.blob(f"document_{document_id}.{extension}")
->>>>>>> Stashed changes
     
     file_obj = io.BytesIO()
     blob.download_to_file(file_obj)
@@ -263,55 +216,11 @@ def retrieve(state: State):
     for idx, item in embeddings_data.items():
         doc_embedding = item["embedding"]
 
-<<<<<<< Updated upstream
-    chroma_path = "/chroma_db" 
-
-    Chroma.from_documents(docs, embeddings, persist_directory=chroma_path, collection_name=collection_name)
-
-    print(f"📂 Se han guardado {len(docs)} fragmentos en ChromaDB.")
-
-    session = Session()
-    try:
-        doc = session.query(Documentt).get(document_id)
-        if doc:
-            doc.embbedings_status = Status_Embeddings.COMPLETED
-            session.commit()
-    except Exception as e:
-        session.rollback()
-        raise e
-    finally:
-        session.close()
-
-
-class State(TypedDict):
-    question: str
-    context: List[Document]
-    answer: str
-    collection: str
-
-def retrieve(state: State):
-    chroma_path = os.getenv("CHROMA_DB_PATH", "/chroma_db")  # Cargar ruta desde el .env
-    collection_name = state["collection"]
-
-    embeddings = GoogleGenerativeAIEmbeddings(
-    model=os.getenv("GOOGLE_EMBEDDING_MODEL", "models/embedding-001"),
-    google_api_key=os.getenv("GOOGLE_API_KEY")
-    )
-
-    vector_store = Chroma(
-        persist_directory=chroma_path,
-        embedding_function=embeddings,
-        collection_name=collection_name
-    )
-
-    retrieved_docs = vector_store.similarity_search(state["question"])
-=======
         # Cálculo de similitud de coseno
         dot_product = sum(a * b for a, b in zip(query_embedding, doc_embedding))
         magnitude_a = sum(a * a for a in query_embedding) ** 0.5
         magnitude_b = sum(b * b for b in doc_embedding) ** 0.5
         similarity = dot_product / (magnitude_a * magnitude_b) if magnitude_a * magnitude_b > 0 else 0
->>>>>>> Stashed changes
 
         similarities.append((idx, similarity))
     
@@ -349,17 +258,6 @@ def question(data):
 
     return {"respuesta": response["answer"]}
 
-<<<<<<< Updated upstream
-# 🔹 Tarea en Segundo Plano con Celery
-@celery_app.task(name='process.sms', queue="allqueue", bin=True)
-def long_running_task(data):
-    chroma_path = "/chroma_db"  # or os.getenv("CHROMA_DB_PATH")
-    client = chromadb.PersistentClient(path=chroma_path)
-
-
-    collections = client.list_collections()
-    exists = data["collection"] in collections
-=======
 # 🔹 Procesamiento de mensajes de Pub/Sub
 def process_task(data):
     try:
@@ -378,7 +276,6 @@ def process_task(data):
         except Exception as e:
             print(f"Error generando respuesta: {str(e)}")
             raise
->>>>>>> Stashed changes
 
         try:
             publish_result(data["task_id"], respuesta["respuesta"])
@@ -447,10 +344,3 @@ if __name__ == "__main__":
 
     print("Iniciando worker de Pub/Sub...")
 
-<<<<<<< Updated upstream
-    print(respuesta["respuesta"])
-    socketio.emit("task_update", {"task_id": current_task.request.id, "message": respuesta["respuesta"]})
-    return f"Task completed"
-
-=======
->>>>>>> Stashed changes

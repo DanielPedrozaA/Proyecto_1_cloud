@@ -16,10 +16,6 @@ flask-socketio
 eventlet
 pysmb
 google-cloud-storage
-<<<<<<< Updated upstream
-google-auth
-=======
 google-auth
 google-cloud-pubsub
 gevent
->>>>>>> Stashed changes

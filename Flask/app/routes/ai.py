@@ -1,25 +1,11 @@
-<<<<<<< Updated upstream
-import re
-from flask import Blueprint, request, jsonify
-import requests
-=======
->>>>>>> Stashed changes
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from flask_cors import cross_origin
 from google.cloud import pubsub_v1
 from app.models import Document, User
-<<<<<<< Updated upstream
-import os
-from celery import Celery
-
-redis_host = os.environ.get("REDIS_HOST", "redis")
-celery_app = Celery('tasks', broker=f"redis://{redis_host}:6379/0")
-=======
 
 project_id = os.getenv("GCP_PROJECT_ID")
 topic_id   = os.getenv("PUBSUB_TOPIC_ID")
 
->>>>>>> Stashed changes
 
 ai_bp = Blueprint('ai', __name__)
 
@@ -56,13 +42,6 @@ def ask_question(doc_id):
     data       = json.dumps(payload).encode()
 
     try:
-<<<<<<< Updated upstream
-        task = celery_app.send_task('process.sms', queue="allqueue", args=[payload])
-    except Exception as e:
-        return jsonify({'message': 'Error connecting to AI service', 'error': str(e)}), 500
-
-    return jsonify({"task_id": task.id}), 202
-=======
         print(f"Project ID: {project_id}, Topic ID: {topic_id}")
         print(f"Topic Path: {topic_path}")
         print("inicio")
@@ -74,4 +53,3 @@ def ask_question(doc_id):
         return jsonify(msg="Error publishing to Pub/Sub", error=str(err)), 500
 
     return jsonify(msg="Task queued"), 202
->>>>>>> Stashed changes
